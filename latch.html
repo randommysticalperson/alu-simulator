@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Latch / Trigger Control Unit</title>
+<style>
+/* ═══════════════════════════════════════════
+   BASE
+═══════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#060c18;
+  --panel:#0b1428;
+  --border:#1a3060;
+  --cyan:#7df9ff;
+  --orange:#ff9f43;
+  --green:#2ed573;
+  --red:#ff4757;
+  --yellow:#ffd32a;
+  --purple:#a29bfe;
+  --dim:#334466;
+  --wire-off:#1a3060;
+  --wire-on:#7df9ff;
+}
+body{
+  background:var(--bg);
+  color:#c8d8f0;
+  font-family:'Courier New',monospace;
+  min-height:100vh;
+  padding:28px 16px 80px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+
+/* ── page title ── */
+.page-title{font-size:1.7rem;letter-spacing:5px;color:var(--cyan);
+  text-shadow:0 0 20px #7df9ff99;text-transform:uppercase;margin-bottom:4px}
+.page-sub{font-size:.7rem;letter-spacing:3px;color:var(--dim);margin-bottom:36px}
+
+/* ═══════════════════════════════════════════
+   CLOCK STRIP
+═══════════════════════════════════════════ */
+.clock-strip{
+  display:flex;align-items:center;gap:16px;
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:10px;padding:14px 24px;margin-bottom:32px;
+  width:100%;max-width:860px;
+}
+.clk-label{font-size:.65rem;letter-spacing:2px;color:var(--dim);text-transform:uppercase;white-space:nowrap}
+.clk-wave{
+  flex:1;height:36px;position:relative;overflow:hidden;
+  border:1px solid var(--border);border-radius:4px;background:#060c18;
+}
+/* Animated square-wave via repeating-linear-gradient + animation */
+.clk-wave::before{
+  content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(
+    90deg,
+    var(--green) 0px, var(--green) 1px,
+    transparent 1px, transparent 20px,
+    transparent 20px, transparent 21px,
+    var(--green) 21px, var(--green) 22px,
+    transparent 22px, transparent 42px
+  );
+  background-size:42px 100%;
+  /* square-wave shape via clip */
+  -webkit-mask:repeating-linear-gradient(
+    90deg,
+    #000 0px,#000 20px,
+    transparent 20px,transparent 21px,
+    #000 21px,#000 41px,
+    transparent 41px,transparent 42px
+  );
+  mask:repeating-linear-gradient(
+    90deg,
+    #000 0px,#000 20px,
+    transparent 20px,transparent 21px,
+    #000 21px,#000 41px,
+    transparent 41px,transparent 42px
+  );
+  animation:clkScroll 1.2s linear infinite;
+  box-shadow:0 0 6px var(--green);
+}
+@keyframes clkScroll{from{background-position:0 0}to{background-position:-42px 0}}
+
+/* square wave path drawn with border trick */
+.clk-wave::after{
+  content:'CLK';position:absolute;right:8px;top:50%;transform:translateY(-50%);
+  font-size:.55rem;color:var(--green);letter-spacing:2px;opacity:.6;
+}
+.clk-freq{font-size:.75rem;color:var(--green);letter-spacing:2px;white-space:nowrap}
+.clk-dot{
+  width:12px;height:12px;border-radius:50%;
+  background:var(--green);box-shadow:0 0 10px var(--green);
+  animation:blink 1.2s steps(1) infinite;
+}
+@keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+
+/* ═══════════════════════════════════════════
+   MAIN GRID
+═══════════════════════════════════════════ */
+.main-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:24px;
+  width:100%;max-width:860px;
+}
+@media(max-width:640px){.main-grid{grid-template-columns:1fr}}
+
+/* ═══════════════════════════════════════════
+   SECTION CARD
+═══════════════════════════════════════════ */
+.card{
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:12px;padding:20px;position:relative;overflow:hidden;
+}
+.card::before{/* subtle corner glow */
+  content:'';position:absolute;top:-40px;right:-40px;
+  width:120px;height:120px;border-radius:50%;
+  background:radial-gradient(circle,#7df9ff08 0%,transparent 70%);
+  pointer-events:none;
+}
+.card-title{
+  font-size:.68rem;letter-spacing:3px;color:var(--cyan);
+  text-transform:uppercase;margin-bottom:16px;
+  border-bottom:1px solid var(--border);padding-bottom:8px;
+}
+
+/* ═══════════════════════════════════════════
+   LATCH / FF DIAGRAM
+═══════════════════════════════════════════ */
+.ff-diagram{
+  display:flex;align-items:center;justify-content:center;
+  gap:0;margin-bottom:18px;position:relative;
+}
+
+/* Input pins column */
+.pins-in{display:flex;flex-direction:column;gap:18px;align-items:flex-end}
+.pins-out{display:flex;flex-direction:column;gap:18px;align-items:flex-start}
+
+.pin-row{display:flex;align-items:center;gap:0}
+.pin-label{
+  font-size:.62rem;letter-spacing:1px;
+  padding:2px 7px;border-radius:3px;
+  background:#0a1628;border:1px solid var(--border);
+  color:var(--dim);transition:all .3s;white-space:nowrap;
+}
+.pin-label.active{color:var(--cyan);border-color:var(--cyan);box-shadow:0 0 8px #7df9ff44}
+.pin-label.high{color:var(--green);border-color:var(--green);box-shadow:0 0 8px #2ed57344}
+.pin-label.low{color:var(--red);border-color:var(--red);box-shadow:0 0 8px #ff475744}
+
+/* Wires */
+.wire-h{
+  height:2px;width:30px;
+  background:var(--wire-off);
+  transition:background .3s,box-shadow .3s;
+  position:relative;
+}
+.wire-h.on{background:var(--wire-on);box-shadow:0 0 6px var(--wire-on)}
+.wire-h.pulse{animation:wirePulse .4s ease-out}
+@keyframes wirePulse{
+  0%{box-shadow:0 0 0 var(--cyan)}
+  50%{box-shadow:0 0 14px var(--cyan)}
+  100%{box-shadow:0 0 4px var(--cyan)}
+}
+
+/* The FF box itself */
+.ff-box{
+  width:100px;min-height:90px;
+  background:linear-gradient(145deg,#0d1f3c,#0a1628);
+  border:2px solid var(--border);border-radius:8px;
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:6px;padding:10px 6px;
+  position:relative;transition:border-color .3s,box-shadow .3s;
+}
+.ff-box.triggered{
+  border-color:var(--cyan);
+  box-shadow:0 0 20px #7df9ff44;
+  animation:ffTrigger .5s ease-out;
+}
+@keyframes ffTrigger{
+  0%{box-shadow:0 0 0 #7df9ff}
+  40%{box-shadow:0 0 30px #7df9ffaa}
+  100%{box-shadow:0 0 14px #7df9ff44}
+}
+.ff-name{font-size:.72rem;letter-spacing:2px;color:var(--cyan);text-transform:uppercase}
+.ff-type{font-size:.55rem;letter-spacing:1px;color:var(--dim);text-transform:uppercase}
+
+/* CLK input line at bottom of FF */
+.ff-clk-line{
+  position:absolute;bottom:-14px;left:50%;transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;gap:0;
+}
+.ff-clk-wire{width:2px;height:14px;background:var(--wire-off);transition:background .3s}
+.ff-clk-wire.on{background:var(--green);box-shadow:0 0 6px var(--green)}
+.ff-clk-label{font-size:.5rem;color:var(--dim);letter-spacing:1px;margin-top:2px}
+
+/* ── State display inside FF ── */
+.ff-state{
+  display:flex;gap:8px;margin-top:4px;
+}
+.state-bit{
+  width:28px;height:28px;border-radius:4px;
+  border:1.5px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:.85rem;color:var(--dim);
+  background:#060c18;transition:all .3s;
+}
+.state-bit.q-high{
+  border-color:var(--green);color:var(--green);
+  box-shadow:0 0 10px #2ed57366;background:#001a0a;
+}
+.state-bit.q-low{
+  border-color:var(--red);color:var(--red);
+  box-shadow:0 0 10px #ff475766;background:#1a0a0a;
+}
+.state-label{font-size:.5rem;color:var(--dim);letter-spacing:1px;text-align:center}
+
+/* ═══════════════════════════════════════════
+   CONTROL BUTTONS
+═══════════════════════════════════════════ */
+.ctrl-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:6px}
+.ctrl-btn{
+  padding:6px 14px;
+  border:1.5px solid var(--border);border-radius:6px;
+  background:#0a1628;color:var(--dim);
+  font-family:'Courier New',monospace;font-size:.72rem;
+  letter-spacing:1px;cursor:pointer;transition:all .2s;
+  text-transform:uppercase;
+}
+.ctrl-btn:hover{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 10px #7df9ff33}
+.ctrl-btn.on{
+  border-color:var(--green);color:var(--green);
+  background:#001a0a;box-shadow:0 0 10px #2ed57344;
+}
+.ctrl-btn.set-btn:hover,.ctrl-btn.set-btn.on{
+  border-color:var(--green);color:var(--green);background:#001a0a;box-shadow:0 0 10px #2ed57344;
+}
+.ctrl-btn.reset-btn:hover,.ctrl-btn.reset-btn.on{
+  border-color:var(--red);color:var(--red);background:#1a0a0a;box-shadow:0 0 10px #ff475744;
+}
+.ctrl-btn.clk-btn{
+  border-color:var(--yellow);color:var(--yellow);
+  animation:clkBtnPulse 1.2s steps(1) infinite;
+}
+@keyframes clkBtnPulse{0%,49%{box-shadow:0 0 8px #ffd32a55}50%,100%{box-shadow:none}}
+
+/* ═══════════════════════════════════════════
+   TRUTH TABLE
+═══════════════════════════════════════════ */
+.truth-table{width:100%;border-collapse:collapse;font-size:.68rem;margin-top:8px}
+.truth-table th{
+  color:var(--dim);letter-spacing:2px;text-transform:uppercase;
+  padding:5px 10px;border-bottom:1px solid var(--border);text-align:center;
+}
+.truth-table td{
+  padding:5px 10px;text-align:center;
+  color:#5577aa;border-bottom:1px solid #0d1525;transition:all .3s;
+}
+.truth-table tr.active-row td{color:var(--cyan);background:#0d2040}
+.truth-table .val-1{color:var(--green)}
+.truth-table .val-0{color:var(--red)}
+.truth-table .val-x{color:var(--orange)}
+
+/* ═══════════════════════════════════════════
+   CONTROL UNIT BLOCK (full-width)
+═══════════════════════════════════════════ */
+.cu-card{
+  grid-column:1/-1;
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:12px;padding:24px;position:relative;overflow:hidden;
+}
+.cu-title{
+  font-size:.68rem;letter-spacing:3px;color:var(--orange);
+  text-transform:uppercase;margin-bottom:20px;
+  border-bottom:1px solid var(--border);padding-bottom:8px;
+}
+
+/* Pipeline stages */
+.pipeline{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0}
+.stage{
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  padding:14px 16px;
+  background:#060c18;border:1.5px solid var(--border);
+  border-radius:8px;min-width:90px;position:relative;
+  transition:all .4s;
+}
+.stage.active{
+  border-color:var(--orange);
+  box-shadow:0 0 18px #ff9f4344;
+  background:#1a0a00;
+  animation:stageActive .5s ease-out;
+}
+@keyframes stageActive{
+  0%{box-shadow:0 0 0 var(--orange)}
+  50%{box-shadow:0 0 28px #ff9f43aa}
+  100%{box-shadow:0 0 18px #ff9f4344}
+}
+.stage-icon{font-size:1.2rem;line-height:1}
+.stage-name{font-size:.6rem;letter-spacing:2px;color:var(--dim);text-transform:uppercase}
+.stage-state{
+  font-size:.65rem;color:var(--orange);letter-spacing:1px;
+  min-height:14px;transition:all .3s;
+}
+
+/* Arrow between stages */
+.stage-arrow{
+  width:32px;height:2px;background:var(--wire-off);
+  position:relative;transition:background .3s,box-shadow .3s;
+  flex-shrink:0;
+}
+.stage-arrow::after{
+  content:'';position:absolute;right:-5px;top:50%;transform:translateY(-50%);
+  border-left:6px solid var(--wire-off);
+  border-top:4px solid transparent;
+  border-bottom:4px solid transparent;
+  transition:border-left-color .3s;
+}
+.stage-arrow.on{background:var(--orange);box-shadow:0 0 8px #ff9f4366}
+.stage-arrow.on::after{border-left-color:var(--orange)}
+
+/* Animated data packet travelling along arrow */
+.stage-arrow .packet{
+  position:absolute;top:50%;transform:translateY(-50%);
+  width:6px;height:6px;border-radius:50%;
+  background:var(--orange);box-shadow:0 0 8px var(--orange);
+  opacity:0;
+}
+.stage-arrow.on .packet{animation:travel .5s ease-in-out forwards}
+@keyframes travel{0%{left:0;opacity:1}100%{left:calc(100% - 6px);opacity:0}}
+
+/* CU control buttons */
+.cu-ctrl{display:flex;gap:10px;justify-content:center;margin-top:18px;flex-wrap:wrap}
+.cu-btn{
+  padding:8px 20px;border:1.5px solid var(--border);border-radius:6px;
+  background:#0a1628;color:var(--dim);
+  font-family:'Courier New',monospace;font-size:.75rem;
+  letter-spacing:2px;cursor:pointer;transition:all .2s;text-transform:uppercase;
+}
+.cu-btn:hover{border-color:var(--orange);color:var(--orange);box-shadow:0 0 12px #ff9f4333}
+.cu-btn.running{
+  border-color:var(--orange);color:var(--orange);
+  box-shadow:0 0 14px #ff9f4344;
+  animation:runPulse 1s ease-in-out infinite;
+}
+@keyframes runPulse{0%,100%{box-shadow:0 0 8px #ff9f4344}50%{box-shadow:0 0 22px #ff9f43aa}}
+
+/* ═══════════════════════════════════════════
+   REGISTER FILE VISUALISER
+═══════════════════════════════════════════ */
+.reg-file{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px;
+}
+.reg-cell{
+  background:#060c18;border:1px solid var(--border);border-radius:6px;
+  padding:8px 6px;text-align:center;transition:all .3s;
+}
+.reg-cell.write{
+  border-color:var(--orange);box-shadow:0 0 10px #ff9f4344;
+  animation:regWrite .6s ease-out;
+}
+@keyframes regWrite{
+  0%{background:#060c18}40%{background:#1a0a00}100%{background:#060c18}
+}
+.reg-cell.read{
+  border-color:var(--cyan);box-shadow:0 0 10px #7df9ff44;
+  animation:regRead .6s ease-out;
+}
+@keyframes regRead{
+  0%{background:#060c18}40%{background:#0d2040}100%{background:#060c18}
+}
+.reg-cell-name{font-size:.55rem;color:var(--dim);letter-spacing:1px;text-transform:uppercase}
+.reg-cell-val{font-size:.85rem;color:#5577aa;letter-spacing:1px;margin-top:3px;transition:color .3s}
+.reg-cell.write .reg-cell-val{color:var(--orange)}
+.reg-cell.read  .reg-cell-val{color:var(--cyan)}
+
+/* ═══════════════════════════════════════════
+   STATUS BAR
+═══════════════════════════════════════════ */
+.status-bar{
+  width:100%;max-width:860px;margin-top:24px;
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:8px;padding:10px 20px;
+  font-size:.65rem;color:var(--dim);letter-spacing:2px;
+  display:flex;gap:20px;flex-wrap:wrap;align-items:center;
+}
+.status-item{display:flex;gap:6px;align-items:center}
+.status-dot{width:7px;height:7px;border-radius:50%;background:var(--dim)}
+.status-dot.on{background:var(--green);box-shadow:0 0 6px var(--green)}
+.status-dot.warn{background:var(--orange);box-shadow:0 0 6px var(--orange)}
+.status-dot.err{background:var(--red);box-shadow:0 0 6px var(--red)}
+
+/* ═══════════════════════════════════════════
+   BG BITS
+═══════════════════════════════════════════ */
+.bg-bits{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;opacity:.03}
+.bit-col{position:absolute;top:-100%;font-size:.65rem;color:var(--cyan);
+  line-height:1.5;animation:fall linear infinite;white-space:pre}
+@keyframes fall{to{top:110%}}
+h1,p,.clock-strip,.main-grid,.status-bar{position:relative;z-index:1}
+</style>
+</head>
+<body>
+
+<div class="bg-bits" id="bgBits"></div>
+
+<h1 class="page-title">Control Unit</h1>
+<p class="page-sub">Latch &amp; Trigger Simulator — CSS Animated</p>
+
+<!-- ── CLOCK STRIP ── -->
+<div class="clock-strip">
+  <span class="clk-label">System Clock</span>
+  <div class="clk-wave"></div>
+  <span class="clk-freq" id="clkFreq">1.0 Hz</span>
+  <input type="range" id="clkSpeed" min="1" max="10" value="5"
+    style="width:80px;accent-color:#2ed573;cursor:pointer" title="Clock Speed"/>
+  <div class="clk-dot"></div>
+</div>
+
+<!-- ── MAIN GRID ── -->
+<div class="main-grid">
+
+  <!-- ══ SR LATCH ══ -->
+  <div class="card">
+    <div class="card-title">SR Latch (NOR-based)</div>
+    <div class="ff-diagram">
+      <!-- Inputs -->
+      <div class="pins-in">
+        <div class="pin-row">
+          <div class="pin-label" id="srS-label">S = 0</div>
+          <div class="wire-h" id="srS-wire"></div>
+        </div>
+        <div class="pin-row">
+          <div class="pin-label" id="srR-label">R = 0</div>
+          <div class="wire-h" id="srR-wire"></div>
+        </div>
+      </div>
+      <!-- FF Box -->
+      <div class="ff-box" id="srBox">
+        <div class="ff-name">SR</div>
+        <div class="ff-type">Latch</div>
+        <div class="ff-state">
+          <div>
+            <div class="state-bit" id="srQ">0</div>
+            <div class="state-label">Q</div>
+          </div>
+          <div>
+            <div class="state-bit" id="srQn">1</div>
+            <div class="state-label">Q̄</div>
+          </div>
+        </div>
+      </div>
+      <!-- Outputs -->
+      <div class="pins-out">
+        <div class="pin-row">
+          <div class="wire-h" id="srQ-wire"></div>
+          <div class="pin-label" id="srQ-out">Q = 0</div>
+        </div>
+        <div class="pin-row">
+          <div class="wire-h" id="srQn-wire"></div>
+          <div class="pin-label" id="srQn-out">Q̄ = 1</div>
+        </div>
+      </div>
+    </div>
+    <div class="ctrl-row">
+      <button class="ctrl-btn set-btn" onclick="srSet()">SET (S=1)</button>
+      <button class="ctrl-btn reset-btn" onclick="srReset()">RESET (R=1)</button>
+      <button class="ctrl-btn" onclick="srHold()">HOLD</button>
+    </div>
+    <table class="truth-table" id="srTable" style="margin-top:14px">
+      <thead><tr><th>S</th><th>R</th><th>Q</th><th>Q̄</th><th>State</th></tr></thead>
+      <tbody>
+        <tr data-s="0" data-r="0"><td>0</td><td>0</td><td class="val-x">Q</td><td class="val-x">Q̄</td><td>Hold</td></tr>
+        <tr data-s="1" data-r="0"><td class="val-1">1</td><td>0</td><td class="val-1">1</td><td class="val-0">0</td><td>Set</td></tr>
+        <tr data-s="0" data-r="1"><td>0</td><td class="val-1">1</td><td class="val-0">0</td><td class="val-1">1</td><td>Reset</td></tr>
+        <tr data-s="1" data-r="1"><td class="val-1">1</td><td class="val-1">1</td><td class="val-x">X</td><td class="val-x">X</td><td style="color:var(--red)">Invalid</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══ D FLIP-FLOP ══ -->
+  <div class="card">
+    <div class="card-title">D Flip-Flop (Edge-Triggered)</div>
+    <div class="ff-diagram">
+      <div class="pins-in">
+        <div class="pin-row">
+          <div class="pin-label" id="dD-label">D = 0</div>
+          <div class="wire-h" id="dD-wire"></div>
+        </div>
+        <div class="pin-row">
+          <div class="pin-label" id="dClk-label">CLK ↑</div>
+          <div class="wire-h" id="dClk-wire"></div>
+        </div>
+      </div>
+      <div class="ff-box" id="dBox">
+        <div class="ff-name">D-FF</div>
+        <div class="ff-type">Rising Edge</div>
+        <div class="ff-state">
+          <div>
+            <div class="state-bit" id="dQ">0</div>
+            <div class="state-label">Q</div>
+          </div>
+          <div>
+            <div class="state-bit" id="dQn">1</div>
+            <div class="state-label">Q̄</div>
+          </div>
+        </div>
+        <div class="ff-clk-line">
+          <div class="ff-clk-wire" id="dClkWire"></div>
+          <div class="ff-clk-label">CLK</div>
+        </div>
+      </div>
+      <div class="pins-out">
+        <div class="pin-row">
+          <div class="wire-h" id="dQ-wire"></div>
+          <div class="pin-label" id="dQ-out">Q = 0</div>
+        </div>
+        <div class="pin-row">
+          <div class="wire-h" id="dQn-wire"></div>
+          <div class="pin-label" id="dQn-out">Q̄ = 1</div>
+        </div>
+      </div>
+    </div>
+    <div class="ctrl-row">
+      <button class="ctrl-btn" id="dToggleBtn" onclick="dToggleD()">D = 0 → Toggle</button>
+      <button class="ctrl-btn clk-btn" onclick="dClock()">CLK Pulse ↑</button>
+    </div>
+    <table class="truth-table" id="dTable" style="margin-top:14px">
+      <thead><tr><th>CLK</th><th>D</th><th>Q(next)</th><th>Q̄(next)</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr data-clk="0"><td>0 / 1</td><td class="val-x">X</td><td class="val-x">Q</td><td class="val-x">Q̄</td><td>Hold</td></tr>
+        <tr data-clk="rise" data-d="0"><td class="val-1">↑</td><td class="val-0">0</td><td class="val-0">0</td><td class="val-1">1</td><td>Latch 0</td></tr>
+        <tr data-clk="rise" data-d="1"><td class="val-1">↑</td><td class="val-1">1</td><td class="val-1">1</td><td class="val-0">0</td><td>Latch 1</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══ JK FLIP-FLOP ══ -->
+  <div class="card">
+    <div class="card-title">JK Flip-Flop (Toggle)</div>
+    <div class="ff-diagram">
+      <div class="pins-in">
+        <div class="pin-row">
+          <div class="pin-label" id="jkJ-label">J = 0</div>
+          <div class="wire-h" id="jkJ-wire"></div>
+        </div>
+        <div class="pin-row">
+          <div class="pin-label" id="jkK-label">K = 0</div>
+          <div class="wire-h" id="jkK-wire"></div>
+        </div>
+      </div>
+      <div class="ff-box" id="jkBox">
+        <div class="ff-name">JK</div>
+        <div class="ff-type">Flip-Flop</div>
+        <div class="ff-state">
+          <div>
+            <div class="state-bit" id="jkQ">0</div>
+            <div class="state-label">Q</div>
+          </div>
+          <div>
+            <div class="state-bit" id="jkQn">1</div>
+            <div class="state-label">Q̄</div>
+          </div>
+        </div>
+        <div class="ff-clk-line">
+          <div class="ff-clk-wire" id="jkClkWire"></div>
+          <div class="ff-clk-label">CLK</div>
+        </div>
+      </div>
+      <div class="pins-out">
+        <div class="pin-row">
+          <div class="wire-h" id="jkQ-wire"></div>
+          <div class="pin-label" id="jkQ-out">Q = 0</div>
+        </div>
+        <div class="pin-row">
+          <div class="wire-h" id="jkQn-wire"></div>
+          <div class="pin-label" id="jkQn-out">Q̄ = 1</div>
+        </div>
+      </div>
+    </div>
+    <div class="ctrl-row">
+      <button class="ctrl-btn set-btn" onclick="jkOp(1,0)">J=1 K=0 (Set)</button>
+      <button class="ctrl-btn reset-btn" onclick="jkOp(0,1)">J=0 K=1 (Rst)</button>
+      <button class="ctrl-btn" onclick="jkOp(1,1)">J=1 K=1 (Toggle)</button>
+      <button class="ctrl-btn clk-btn" onclick="jkClock()">CLK ↑</button>
+    </div>
+    <table class="truth-table" id="jkTable" style="margin-top:14px">
+      <thead><tr><th>J</th><th>K</th><th>Q(next)</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr data-j="0" data-k="0"><td>0</td><td>0</td><td class="val-x">Q</td><td>Hold</td></tr>
+        <tr data-j="1" data-k="0"><td class="val-1">1</td><td>0</td><td class="val-1">1</td><td>Set</td></tr>
+        <tr data-j="0" data-k="1"><td>0</td><td class="val-1">1</td><td class="val-0">0</td><td>Reset</td></tr>
+        <tr data-j="1" data-k="1"><td class="val-1">1</td><td class="val-1">1</td><td class="val-x">Q̄</td><td style="color:var(--purple)">Toggle</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══ T FLIP-FLOP ══ -->
+  <div class="card">
+    <div class="card-title">T Flip-Flop (Toggle)</div>
+    <div class="ff-diagram">
+      <div class="pins-in">
+        <div class="pin-row">
+          <div class="pin-label" id="tT-label">T = 0</div>
+          <div class="wire-h" id="tT-wire"></div>
+        </div>
+        <div class="pin-row">
+          <div class="pin-label" id="tClk-label">CLK ↑</div>
+          <div class="wire-h" id="tClk-wire"></div>
+        </div>
+      </div>
+      <div class="ff-box" id="tBox">
+        <div class="ff-name">T-FF</div>
+        <div class="ff-type">Toggle</div>
+        <div class="ff-state">
+          <div>
+            <div class="state-bit" id="tQ">0</div>
+            <div class="state-label">Q</div>
+          </div>
+          <div>
+            <div class="state-bit" id="tQn">1</div>
+            <div class="state-label">Q̄</div>
+          </div>
+        </div>
+        <div class="ff-clk-line">
+          <div class="ff-clk-wire" id="tClkWire"></div>
+          <div class="ff-clk-label">CLK</div>
+        </div>
+      </div>
+      <div class="pins-out">
+        <div class="pin-row">
+          <div class="wire-h" id="tQ-wire"></div>
+          <div class="pin-label" id="tQ-out">Q = 0</div>
+        </div>
+        <div class="pin-row">
+          <div class="wire-h" id="tQn-wire"></div>
+          <div class="pin-label" id="tQn-out">Q̄ = 1</div>
+        </div>
+      </div>
+    </div>
+    <div class="ctrl-row">
+      <button class="ctrl-btn" id="tToggleBtn" onclick="tToggleT()">T = 0 → Toggle</button>
+      <button class="ctrl-btn clk-btn" onclick="tClock()">CLK Pulse ↑</button>
+    </div>
+    <table class="truth-table" id="tTable" style="margin-top:14px">
+      <thead><tr><th>T</th><th>CLK</th><th>Q(next)</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr data-t="0"><td>0</td><td class="val-x">↑</td><td class="val-x">Q</td><td>Hold</td></tr>
+        <tr data-t="1"><td class="val-1">1</td><td class="val-x">↑</td><td class="val-x">Q̄</td><td style="color:var(--purple)">Toggle</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══ CONTROL UNIT PIPELINE ══ -->
+  <div class="cu-card">
+    <div class="cu-title">Control Unit — Instruction Pipeline</div>
+    <div class="pipeline" id="pipeline">
+      <div class="stage" id="stage-IF">
+        <div class="stage-icon">📥</div>
+        <div class="stage-name">IF</div>
+        <div class="stage-state" id="st-IF">Idle</div>
+      </div>
+      <div class="stage-arrow" id="arr-0"><div class="packet"></div></div>
+      <div class="stage" id="stage-ID">
+        <div class="stage-icon">🔍</div>
+        <div class="stage-name">ID</div>
+        <div class="stage-state" id="st-ID">Idle</div>
+      </div>
+      <div class="stage-arrow" id="arr-1"><div class="packet"></div></div>
+      <div class="stage" id="stage-EX">
+        <div class="stage-icon">⚙️</div>
+        <div class="stage-name">EX</div>
+        <div class="stage-state" id="st-EX">Idle</div>
+      </div>
+      <div class="stage-arrow" id="arr-2"><div class="packet"></div></div>
+      <div class="stage" id="stage-MEM">
+        <div class="stage-icon">💾</div>
+        <div class="stage-name">MEM</div>
+        <div class="stage-state" id="st-MEM">Idle</div>
+      </div>
+      <div class="stage-arrow" id="arr-3"><div class="packet"></div></div>
+      <div class="stage" id="stage-WB">
+        <div class="stage-icon">✅</div>
+        <div class="stage-name">WB</div>
+        <div class="stage-state" id="st-WB">Idle</div>
+      </div>
+    </div>
+
+    <!-- Register File -->
+    <div style="margin-top:20px">
+      <div style="font-size:.6rem;letter-spacing:2px;color:var(--dim);text-transform:uppercase;margin-bottom:8px">Register File</div>
+      <div class="reg-file" id="regFile"></div>
+    </div>
+
+    <div class="cu-ctrl">
+      <button class="cu-btn" id="cuRunBtn" onclick="cuToggle()">▶ RUN PIPELINE</button>
+      <button class="cu-btn" onclick="cuStep()">STEP ▸</button>
+      <button class="cu-btn" onclick="cuReset()">↺ RESET</button>
+    </div>
+  </div>
+
+</div><!-- /main-grid -->
+
+<!-- STATUS BAR -->
+<div class="status-bar">
+  <div class="status-item"><div class="status-dot on" id="sdClk"></div><span>Clock Active</span></div>
+  <div class="status-item"><div class="status-dot" id="sdSR"></div><span>SR Latch</span></div>
+  <div class="status-item"><div class="status-dot" id="sdD"></div><span>D Flip-Flop</span></div>
+  <div class="status-item"><div class="status-dot" id="sdJK"></div><span>JK Flip-Flop</span></div>
+  <div class="status-item"><div class="status-dot" id="sdT"></div><span>T Flip-Flop</span></div>
+  <div class="status-item"><div class="status-dot warn" id="sdCU"></div><span id="sdCULabel">CU Idle</span></div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════
+   UTILITY
+══════════════════════════════════════════ */
+function el(id){return document.getElementById(id)}
+function pulse(id){
+  const e=el(id); if(!e)return;
+  e.classList.remove('pulse'); void e.offsetWidth; e.classList.add('pulse');
+}
+function trigger(id){
+  const e=el(id); if(!e)return;
+  e.classList.remove('triggered'); void e.offsetWidth; e.classList.add('triggered');
+  setTimeout(()=>e.classList.remove('triggered'),600);
+}
+
+/* ══════════════════════════════════════════
+   BG BITS
+══════════════════════════════════════════ */
+const bg=el('bgBits');
+for(let i=0;i<28;i++){
+  const c=document.createElement('div'); c.className='bit-col';
+  c.style.left=(Math.random()*100)+'%';
+  c.style.animationDuration=(10+Math.random()*18)+'s';
+  c.style.animationDelay=(-Math.random()*20)+'s';
+  let s=''; for(let j=0;j<60;j++) s+=(Math.random()>.5?'1':'0')+'\n';
+  c.textContent=s; bg.appendChild(c);
+}
+
+/* ══════════════════════════════════════════
+   CLOCK SPEED SLIDER
+══════════════════════════════════════════ */
+el('clkSpeed').addEventListener('input',function(){
+  const hz=(this.value/5).toFixed(1);
+  el('clkFreq').textContent=hz+' Hz';
+  const dur=(1/parseFloat(hz)).toFixed(2)+'s';
+  document.querySelector('.clk-wave::before');
+  // update animation duration via CSS variable trick
+  document.documentElement.style.setProperty('--clk-dur',dur);
+  document.querySelector('.clk-dot').style.animationDuration=dur;
+});
+
+/* ══════════════════════════════════════════
+   SR LATCH
+══════════════════════════════════════════ */
+let srState={Q:0,Qn:1,S:0,R:0};
+function srUpdateUI(){
+  const {Q,Qn,S,R}=srState;
+  el('srS-label').textContent=`S = ${S}`;
+  el('srR-label').textContent=`R = ${R}`;
+  el('srS-label').className='pin-label'+(S?' high':' low');
+  el('srR-label').className='pin-label'+(R?' high':' low');
+  el('srS-wire').className='wire-h'+(S?' on':'');
+  el('srR-wire').className='wire-h'+(R?' on':'');
+  el('srQ').textContent=Q; el('srQ').className='state-bit'+(Q?' q-high':' q-low');
+  el('srQn').textContent=Qn; el('srQn').className='state-bit'+(Qn?' q-high':' q-low');
+  el('srQ-wire').className='wire-h'+(Q?' on':'');
+  el('srQn-wire').className='wire-h'+(Qn?' on':'');
+  el('srQ-out').textContent=`Q = ${Q}`; el('srQ-out').className='pin-label'+(Q?' high':' low');
+  el('srQn-out').textContent=`Q̄ = ${Qn}`; el('srQn-out').className='pin-label'+(Qn?' high':' low');
+  // highlight truth table
+  document.querySelectorAll('#srTable tbody tr').forEach(r=>{
+    r.classList.toggle('active-row',+r.dataset.s===S && +r.dataset.r===R);
+  });
+  el('sdSR').className='status-dot'+(Q?' on':'');
+  if(S||R) trigger('srBox');
+}
+function srSet(){srState={Q:1,Qn:0,S:1,R:0}; srUpdateUI(); setTimeout(()=>{srState.S=0;srUpdateUI();},400);}
+function srReset(){srState={Q:0,Qn:1,S:0,R:1}; srUpdateUI(); setTimeout(()=>{srState.R=0;srUpdateUI();},400);}
+function srHold(){srState.S=0;srState.R=0; srUpdateUI();}
+srUpdateUI();
+
+/* ══════════════════════════════════════════
+   D FLIP-FLOP
+══════════════════════════════════════════ */
+let dState={Q:0,Qn:1,D:0,clkEdge:false};
+function dUpdateUI(){
+  const {Q,Qn,D,clkEdge}=dState;
+  el('dD-label').textContent=`D = ${D}`;
+  el('dD-label').className='pin-label'+(D?' high':' low');
+  el('dD-wire').className='wire-h'+(D?' on':'');
+  el('dClk-label').className='pin-label'+(clkEdge?' active':'');
+  el('dClk-wire').className='wire-h'+(clkEdge?' on':'');
+  el('dClkWire').className='ff-clk-wire'+(clkEdge?' on':'');
+  el('dQ').textContent=Q; el('dQ').className='state-bit'+(Q?' q-high':' q-low');
+  el('dQn').textContent=Qn; el('dQn').className='state-bit'+(Qn?' q-high':' q-low');
+  el('dQ-wire').className='wire-h'+(Q?' on':'');
+  el('dQn-wire').className='wire-h'+(Qn?' on':'');
+  el('dQ-out').textContent=`Q = ${Q}`; el('dQ-out').className='pin-label'+(Q?' high':' low');
+  el('dQn-out').textContent=`Q̄ = ${Qn}`; el('dQn-out').className='pin-label'+(Qn?' high':' low');
+  el('dToggleBtn').textContent=`D = ${D} → Toggle`;
+  document.querySelectorAll('#dTable tbody tr').forEach(r=>{
+    const match = clkEdge && r.dataset.clk==='rise' && +r.dataset.d===D;
+    r.classList.toggle('active-row', match);
+  });
+  el('sdD').className='status-dot'+(Q?' on':'');
+}
+function dToggleD(){dState.D=dState.D?0:1; dUpdateUI();}
+function dClock(){
+  dState.clkEdge=true; dState.Q=dState.D; dState.Qn=dState.D?0:1;
+  dUpdateUI(); trigger('dBox');
+  setTimeout(()=>{dState.clkEdge=false; dUpdateUI();},400);
+}
+dUpdateUI();
+
+/* ══════════════════════════════════════════
+   JK FLIP-FLOP
+══════════════════════════════════════════ */
+let jkState={Q:0,Qn:1,J:0,K:0,clkEdge:false};
+function jkUpdateUI(){
+  const {Q,Qn,J,K,clkEdge}=jkState;
+  el('jkJ-label').textContent=`J = ${J}`; el('jkJ-label').className='pin-label'+(J?' high':' low');
+  el('jkK-label').textContent=`K = ${K}`; el('jkK-label').className='pin-label'+(K?' high':' low');
+  el('jkJ-wire').className='wire-h'+(J?' on':'');
+  el('jkK-wire').className='wire-h'+(K?' on':'');
+  el('jkClkWire').className='ff-clk-wire'+(clkEdge?' on':'');
+  el('jkQ').textContent=Q; el('jkQ').className='state-bit'+(Q?' q-high':' q-low');
+  el('jkQn').textContent=Qn; el('jkQn').className='state-bit'+(Qn?' q-high':' q-low');
+  el('jkQ-wire').className='wire-h'+(Q?' on':'');
+  el('jkQn-wire').className='wire-h'+(Qn?' on':'');
+  el('jkQ-out').textContent=`Q = ${Q}`; el('jkQ-out').className='pin-label'+(Q?' high':' low');
+  el('jkQn-out').textContent=`Q̄ = ${Qn}`; el('jkQn-out').className='pin-label'+(Qn?' high':' low');
+  document.querySelectorAll('#jkTable tbody tr').forEach(r=>{
+    r.classList.toggle('active-row', +r.dataset.j===J && +r.dataset.k===K);
+  });
+  el('sdJK').className='status-dot'+(Q?' on':'');
+}
+function jkOp(j,k){jkState.J=j; jkState.K=k; jkUpdateUI();}
+function jkClock(){
+  const {J,K,Q}=jkState;
+  jkState.clkEdge=true;
+  if(J===0&&K===0){/* hold */}
+  else if(J===1&&K===0){jkState.Q=1;jkState.Qn=0;}
+  else if(J===0&&K===1){jkState.Q=0;jkState.Qn=1;}
+  else{jkState.Q=Q?0:1;jkState.Qn=Q?1:0;}
+  jkUpdateUI(); trigger('jkBox');
+  setTimeout(()=>{jkState.clkEdge=false; jkUpdateUI();},400);
+}
+jkUpdateUI();
+
+/* ══════════════════════════════════════════
+   T FLIP-FLOP
+══════════════════════════════════════════ */
+let tState={Q:0,Qn:1,T:0,clkEdge:false};
+function tUpdateUI(){
+  const {Q,Qn,T,clkEdge}=tState;
+  el('tT-label').textContent=`T = ${T}`; el('tT-label').className='pin-label'+(T?' high':' low');
+  el('tClk-label').className='pin-label'+(clkEdge?' active':'');
+  el('tT-wire').className='wire-h'+(T?' on':'');
+  el('tClk-wire').className='wire-h'+(clkEdge?' on':'');
+  el('tClkWire').className='ff-clk-wire'+(clkEdge?' on':'');
+  el('tQ').textContent=Q; el('tQ').className='state-bit'+(Q?' q-high':' q-low');
+  el('tQn').textContent=Qn; el('tQn').className='state-bit'+(Qn?' q-high':' q-low');
+  el('tQ-wire').className='wire-h'+(Q?' on':'');
+  el('tQn-wire').className='wire-h'+(Qn?' on':'');
+  el('tQ-out').textContent=`Q = ${Q}`; el('tQ-out').className='pin-label'+(Q?' high':' low');
+  el('tQn-out').textContent=`Q̄ = ${Qn}`; el('tQn-out').className='pin-label'+(Qn?' high':' low');
+  el('tToggleBtn').textContent=`T = ${T} → Toggle`;
+  document.querySelectorAll('#tTable tbody tr').forEach(r=>{
+    r.classList.toggle('active-row', +r.dataset.t===T);
+  });
+  el('sdT').className='status-dot'+(Q?' on':'');
+}
+function tToggleT(){tState.T=tState.T?0:1; tUpdateUI();}
+function tClock(){
+  tState.clkEdge=true;
+  if(tState.T){tState.Q=tState.Q?0:1; tState.Qn=tState.Q?0:1;}
+  tUpdateUI(); trigger('tBox');
+  setTimeout(()=>{tState.clkEdge=false; tUpdateUI();},400);
+}
+tUpdateUI();
+
+/* ══════════════════════════════════════════
+   CONTROL UNIT PIPELINE
+══════════════════════════════════════════ */
+const stages=['IF','ID','EX','MEM','WB'];
+const stageLabels={IF:'Fetch',ID:'Decode',EX:'Execute',MEM:'MemAccess',WB:'WriteBack'};
+const instrs=['ADD R1,R2','LDR R3,#4','SUB R4,R5','STR R6,#8','AND R7,R8','XOR R1,R3'];
+let cuStep_n=0, cuRunning=false, cuInterval=null, cuInstrIdx=0;
+let regVals=Array.from({length:8},(_,i)=>Math.floor(Math.random()*256));
+
+// Build register file
+const rf=el('regFile');
+for(let i=0;i<8;i++){
+  const c=document.createElement('div'); c.className='reg-cell'; c.id='reg-'+i;
+  c.innerHTML=`<div class="reg-cell-name">R${i}</div><div class="reg-cell-val" id="regv-${i}">${regVals[i]}</div>`;
+  rf.appendChild(c);
+}
+
+function cuClearAll(){
+  stages.forEach(s=>{
+    el('stage-'+s).classList.remove('active');
+    el('st-'+s).textContent='Idle';
+  });
+  for(let i=0;i<4;i++){
+    const a=el('arr-'+i); a.classList.remove('on');
+  }
+}
+
+function cuActivateStage(idx){
+  cuClearAll();
+  const s=stages[idx];
+  el('stage-'+s).classList.add('active');
+  el('st-'+s).textContent=stageLabels[s];
+  if(idx>0){
+    const a=el('arr-'+(idx-1)); a.classList.add('on');
+    // re-trigger packet animation
+    const p=a.querySelector('.packet');
+    p.style.animation='none'; void p.offsetWidth; p.style.animation='';
+  }
+  // update status
+  el('sdCU').className='status-dot warn';
+  el('sdCULabel').textContent='CU: '+s+' Stage';
+}
+
+function cuStepFn(){
+  if(cuStep_n===0){
+    cuInstrIdx=(cuInstrIdx+1)%instrs.length;
+  }
+  cuActivateStage(cuStep_n);
+  // simulate register activity
+  if(cuStep_n===2){// EX
+    const r=Math.floor(Math.random()*8);
+    regVals[r]=Math.floor(Math.random()*256);
+    el('reg-'+r).classList.remove('write'); void el('reg-'+r).offsetWidth;
+    el('reg-'+r).classList.add('write');
+    el('regv-'+r).textContent=regVals[r];
+    setTimeout(()=>el('reg-'+r).classList.remove('write'),600);
+  }
+  if(cuStep_n===4){// WB
+    const r=Math.floor(Math.random()*8);
+    el('reg-'+r).classList.remove('read'); void el('reg-'+r).offsetWidth;
+    el('reg-'+r).classList.add('read');
+    setTimeout(()=>el('reg-'+r).classList.remove('read'),600);
+  }
+  cuStep_n=(cuStep_n+1)%stages.length;
+  if(cuStep_n===0){cuClearAll(); el('sdCU').className='status-dot warn'; el('sdCULabel').textContent='CU Idle';}
+}
+
+function cuStep(){cuStepFn();}
+
+function cuToggle(){
+  cuRunning=!cuRunning;
+  const btn=el('cuRunBtn');
+  if(cuRunning){
+    btn.textContent='⏸ PAUSE'; btn.classList.add('running');
+    cuInterval=setInterval(cuStepFn,700);
+  } else {
+    btn.textContent='▶ RUN PIPELINE'; btn.classList.remove('running');
+    clearInterval(cuInterval);
+  }
+}
+
+function cuReset(){
+  cuRunning=false; clearInterval(cuInterval);
+  el('cuRunBtn').textContent='▶ RUN PIPELINE'; el('cuRunBtn').classList.remove('running');
+  cuStep_n=0; cuClearAll();
+  el('sdCU').className='status-dot warn'; el('sdCULabel').textContent='CU Idle';
+}
+</script>
+</body>
+</html>
