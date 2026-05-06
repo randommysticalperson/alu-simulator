@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Arithmetic Logic Unit (ALU)</title>
+  <style>
+    /* ── Reset & Base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0a0e1a;
+      color: #e0e8ff;
+      font-family: 'Courier New', monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px 20px 60px;
+    }
+
+    h1 {
+      font-size: 2rem;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: #7df9ff;
+      text-shadow: 0 0 18px #7df9ff88;
+      margin-bottom: 6px;
+    }
+    .subtitle {
+      font-size: 0.78rem;
+      color: #5577aa;
+      letter-spacing: 2px;
+      margin-bottom: 36px;
+    }
+
+    /* ── Main Layout ── */
+    .alu-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      width: 100%;
+      max-width: 820px;
+    }
+
+    /* ── Input Registers ── */
+    .inputs-row {
+      display: flex;
+      gap: 80px;
+      justify-content: center;
+      margin-bottom: 0;
+    }
+
+    .register {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .reg-label {
+      font-size: 0.7rem;
+      letter-spacing: 2px;
+      color: #aabbdd;
+      text-transform: uppercase;
+    }
+
+    .reg-box {
+      width: 130px;
+      background: #111a2e;
+      border: 2px solid #2255aa;
+      border-radius: 8px;
+      padding: 10px 12px;
+      text-align: center;
+      box-shadow: 0 0 14px #2255aa55;
+      position: relative;
+    }
+
+    .reg-box input[type="number"] {
+      width: 100%;
+      background: transparent;
+      border: none;
+      color: #7df9ff;
+      font-family: 'Courier New', monospace;
+      font-size: 1.5rem;
+      text-align: center;
+      outline: none;
+      -moz-appearance: textfield;
+    }
+    .reg-box input[type="number"]::-webkit-inner-spin-button,
+    .reg-box input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+    .reg-name {
+      font-size: 0.65rem;
+      color: #334466;
+      letter-spacing: 1px;
+      margin-top: 2px;
+    }
+
+    /* ── Wire from inputs down ── */
+    .wire-down {
+      width: 2px;
+      height: 50px;
+      background: linear-gradient(to bottom, #2255aa, #7df9ff);
+      box-shadow: 0 0 8px #7df9ff55;
+      margin: 0 auto;
+      position: relative;
+    }
+    .wire-down::after {
+      content: '';
+      position: absolute;
+      bottom: -6px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-top: 8px solid #7df9ff;
+      filter: drop-shadow(0 0 4px #7df9ff);
+    }
+
+    .wires-row {
+      display: flex;
+      gap: 80px;
+      justify-content: center;
+    }
+
+    /* ── Operation Selector ── */
+    .op-selector {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 18px 0 0;
+      gap: 10px;
+    }
+    .op-label {
+      font-size: 0.68rem;
+      letter-spacing: 2px;
+      color: #aabbdd;
+      text-transform: uppercase;
+    }
+    .op-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+    }
+    .op-btn {
+      padding: 7px 16px;
+      border: 1.5px solid #334466;
+      border-radius: 6px;
+      background: #111a2e;
+      color: #7799cc;
+      font-family: 'Courier New', monospace;
+      font-size: 0.82rem;
+      cursor: pointer;
+      letter-spacing: 1px;
+      transition: all 0.2s;
+    }
+    .op-btn:hover {
+      border-color: #7df9ff;
+      color: #7df9ff;
+      box-shadow: 0 0 10px #7df9ff44;
+    }
+    .op-btn.active {
+      border-color: #7df9ff;
+      background: #0d2040;
+      color: #7df9ff;
+      box-shadow: 0 0 14px #7df9ff66;
+    }
+
+    /* ── Control Signal Wire ── */
+    .ctrl-wire-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      margin: 10px 0 0;
+      width: 100%;
+    }
+    .ctrl-line {
+      height: 2px;
+      width: 120px;
+      background: linear-gradient(to right, transparent, #ff9f43);
+      box-shadow: 0 0 6px #ff9f4366;
+    }
+    .ctrl-line.right {
+      background: linear-gradient(to left, transparent, #ff9f43);
+    }
+    .ctrl-label-box {
+      padding: 4px 14px;
+      border: 1.5px solid #ff9f43;
+      border-radius: 20px;
+      font-size: 0.65rem;
+      color: #ff9f43;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      box-shadow: 0 0 10px #ff9f4344;
+      white-space: nowrap;
+    }
+
+    /* ── ALU Body ── */
+    .alu-body-wrapper {
+      position: relative;
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .alu-chip {
+      width: 340px;
+      height: 220px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Trapezoid ALU shape via clip-path */
+    .alu-shape {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(145deg, #0d1f3c 0%, #0a1628 60%, #0d2040 100%);
+      border: 2px solid #2255aa;
+      clip-path: polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%);
+      box-shadow:
+        0 0 30px #2255aa44,
+        inset 0 0 40px #0a1628;
+    }
+
+    /* Glowing inner border */
+    .alu-shape::before {
+      content: '';
+      position: absolute;
+      inset: 3px;
+      clip-path: polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%);
+      border: 1px solid #7df9ff22;
+    }
+
+    .alu-inner {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding-top: 20px;
+    }
+
+    .alu-title {
+      font-size: 1.1rem;
+      letter-spacing: 6px;
+      color: #7df9ff;
+      text-shadow: 0 0 16px #7df9ff;
+      text-transform: uppercase;
+    }
+
+    .alu-op-display {
+      font-size: 0.72rem;
+      color: #ff9f43;
+      letter-spacing: 3px;
+      text-shadow: 0 0 10px #ff9f43;
+      min-height: 18px;
+      text-transform: uppercase;
+    }
+
+    /* Internal sub-units */
+    .alu-units {
+      display: flex;
+      gap: 12px;
+      margin-top: 4px;
+    }
+    .unit-box {
+      padding: 5px 10px;
+      border: 1px solid #1e3a6e;
+      border-radius: 4px;
+      font-size: 0.58rem;
+      letter-spacing: 1px;
+      color: #4466aa;
+      text-transform: uppercase;
+      background: #0a1628;
+      transition: all 0.3s;
+    }
+    .unit-box.lit {
+      border-color: #7df9ff;
+      color: #7df9ff;
+      box-shadow: 0 0 8px #7df9ff55;
+      background: #0d2040;
+    }
+
+    /* Flags inside ALU */
+    .flags-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 2px;
+    }
+    .flag {
+      padding: 3px 9px;
+      border: 1px solid #1e3a6e;
+      border-radius: 3px;
+      font-size: 0.55rem;
+      letter-spacing: 1px;
+      color: #334466;
+      text-transform: uppercase;
+      background: #0a1628;
+      transition: all 0.3s;
+    }
+    .flag.active {
+      border-color: #ff4757;
+      color: #ff4757;
+      box-shadow: 0 0 8px #ff475755;
+      background: #1a0a0a;
+    }
+
+    /* ── Output Wire ── */
+    .output-wire {
+      width: 2px;
+      height: 60px;
+      background: linear-gradient(to bottom, #7df9ff, #00d2ff);
+      box-shadow: 0 0 10px #7df9ff66;
+      margin: 0 auto;
+      position: relative;
+    }
+    .output-wire::after {
+      content: '';
+      position: absolute;
+      bottom: -6px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-top: 8px solid #00d2ff;
+      filter: drop-shadow(0 0 4px #00d2ff);
+    }
+
+    /* ── Result Register ── */
+    .result-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .result-label {
+      font-size: 0.68rem;
+      letter-spacing: 3px;
+      color: #aabbdd;
+      text-transform: uppercase;
+    }
+    .result-box {
+      width: 200px;
+      background: #0d2040;
+      border: 2px solid #00d2ff;
+      border-radius: 8px;
+      padding: 14px 20px;
+      text-align: center;
+      box-shadow: 0 0 24px #00d2ff44;
+      position: relative;
+      overflow: hidden;
+    }
+    .result-box::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 60%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, #00d2ff11, transparent);
+      animation: shimmer 2.5s infinite;
+    }
+    @keyframes shimmer {
+      0%   { left: -100%; }
+      100% { left: 200%; }
+    }
+    .result-value {
+      font-size: 2rem;
+      color: #00d2ff;
+      text-shadow: 0 0 20px #00d2ff;
+      letter-spacing: 2px;
+      position: relative;
+      z-index: 1;
+    }
+    .result-binary {
+      font-size: 0.6rem;
+      color: #336688;
+      letter-spacing: 1px;
+      margin-top: 4px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── Flags Output ── */
+    .flags-output {
+      display: flex;
+      gap: 14px;
+      margin-top: 14px;
+    }
+    .flag-out {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .flag-out-label {
+      font-size: 0.58rem;
+      letter-spacing: 2px;
+      color: #334466;
+      text-transform: uppercase;
+    }
+    .flag-out-box {
+      width: 44px;
+      height: 28px;
+      border: 1.5px solid #1e3a6e;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      color: #334466;
+      background: #0a1628;
+      transition: all 0.3s;
+    }
+    .flag-out-box.on {
+      border-color: #ff4757;
+      color: #ff4757;
+      box-shadow: 0 0 10px #ff475766;
+      background: #1a0a0a;
+    }
+    .flag-out-box.zero-on {
+      border-color: #ffd32a;
+      color: #ffd32a;
+      box-shadow: 0 0 10px #ffd32a66;
+      background: #1a1500;
+    }
+    .flag-out-box.carry-on {
+      border-color: #2ed573;
+      color: #2ed573;
+      box-shadow: 0 0 10px #2ed57366;
+      background: #001a0a;
+    }
+
+    /* ── Compute Button ── */
+    .compute-btn {
+      margin-top: 28px;
+      padding: 12px 48px;
+      background: linear-gradient(135deg, #0d2040, #1a3a6e);
+      border: 2px solid #7df9ff;
+      border-radius: 8px;
+      color: #7df9ff;
+      font-family: 'Courier New', monospace;
+      font-size: 1rem;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 0 0 20px #7df9ff44;
+      transition: all 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .compute-btn:hover {
+      background: linear-gradient(135deg, #1a3a6e, #0d2040);
+      box-shadow: 0 0 30px #7df9ff88;
+      transform: translateY(-2px);
+    }
+    .compute-btn:active {
+      transform: translateY(0);
+      box-shadow: 0 0 10px #7df9ff44;
+    }
+    .compute-btn::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 60%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, #7df9ff22, transparent);
+      transition: left 0.4s;
+    }
+    .compute-btn:hover::before { left: 200%; }
+
+    /* ── Pulse animation on compute ── */
+    @keyframes pulse-wire {
+      0%   { box-shadow: 0 0 6px #7df9ff44; }
+      50%  { box-shadow: 0 0 20px #7df9ffcc; }
+      100% { box-shadow: 0 0 6px #7df9ff44; }
+    }
+    .pulse { animation: pulse-wire 0.6s ease-in-out; }
+
+    /* ── Truth Table / Info Panel ── */
+    .info-panel {
+      margin-top: 40px;
+      width: 100%;
+      max-width: 820px;
+      background: #0d1525;
+      border: 1px solid #1e3a6e;
+      border-radius: 10px;
+      padding: 24px 28px;
+    }
+    .info-panel h2 {
+      font-size: 0.78rem;
+      letter-spacing: 3px;
+      color: #7df9ff;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+      border-bottom: 1px solid #1e3a6e;
+      padding-bottom: 8px;
+    }
+    .op-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.75rem;
+    }
+    .op-table th {
+      color: #5577aa;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 6px 12px;
+      text-align: left;
+      border-bottom: 1px solid #1e3a6e;
+    }
+    .op-table td {
+      padding: 6px 12px;
+      color: #7799cc;
+      border-bottom: 1px solid #111a2e;
+    }
+    .op-table tr:hover td { background: #111a2e; }
+    .op-table tr.highlight td {
+      color: #7df9ff;
+      background: #0d2040;
+    }
+    .op-table .op-code {
+      color: #ff9f43;
+      font-weight: bold;
+    }
+
+    /* ── Scrolling binary background ── */
+    .bg-bits {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+      opacity: 0.04;
+    }
+    .bit-col {
+      position: absolute;
+      top: -100%;
+      font-size: 0.7rem;
+      color: #7df9ff;
+      line-height: 1.4;
+      animation: fall linear infinite;
+      white-space: nowrap;
+    }
+    @keyframes fall {
+      to { top: 110%; }
+    }
+
+    /* Ensure content is above bg */
+    h1, .subtitle, .alu-wrapper, .info-panel { position: relative; z-index: 1; }
+  </style>
+</head>
+<body>
+
+<!-- Scrolling binary background -->
+<div class="bg-bits" id="bgBits"></div>
+
+<h1>ALU</h1>
+<p class="subtitle">Arithmetic Logic Unit — Interactive Simulator</p>
+
+<div class="alu-wrapper">
+
+  <!-- Input Registers -->
+  <div class="inputs-row">
+    <div class="register">
+      <span class="reg-label">Input A</span>
+      <div class="reg-box">
+        <input type="number" id="inputA" value="12" min="-128" max="255" />
+        <div class="reg-name">REGISTER A</div>
+      </div>
+    </div>
+    <div class="register">
+      <span class="reg-label">Input B</span>
+      <div class="reg-box">
+        <input type="number" id="inputB" value="5" min="-128" max="255" />
+        <div class="reg-name">REGISTER B</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Wires down -->
+  <div class="wires-row">
+    <div class="wire-down" id="wireA"></div>
+    <div class="wire-down" id="wireB"></div>
+  </div>
+
+  <!-- Operation Selector -->
+  <div class="op-selector">
+    <span class="op-label">Operation Select (Opcode)</span>
+    <div class="op-buttons">
+      <button class="op-btn active" data-op="ADD">ADD</button>
+      <button class="op-btn" data-op="SUB">SUB</button>
+      <button class="op-btn" data-op="MUL">MUL</button>
+      <button class="op-btn" data-op="DIV">DIV</button>
+      <button class="op-btn" data-op="AND">AND</button>
+      <button class="op-btn" data-op="OR">OR</button>
+      <button class="op-btn" data-op="XOR">XOR</button>
+      <button class="op-btn" data-op="NOT">NOT A</button>
+      <button class="op-btn" data-op="SHL">SHL</button>
+      <button class="op-btn" data-op="SHR">SHR</button>
+    </div>
+  </div>
+
+  <!-- Control Signal -->
+  <div class="ctrl-wire-row">
+    <div class="ctrl-line"></div>
+    <div class="ctrl-label-box">Control Signal</div>
+    <div class="ctrl-line right"></div>
+  </div>
+
+  <!-- ALU Body -->
+  <div class="alu-body-wrapper">
+    <div class="alu-chip">
+      <div class="alu-shape"></div>
+      <div class="alu-inner">
+        <div class="alu-title">ALU</div>
+        <div class="alu-op-display" id="aluOpDisplay">ADD</div>
+        <div class="alu-units">
+          <div class="unit-box" id="unitArith">Arith</div>
+          <div class="unit-box" id="unitLogic">Logic</div>
+          <div class="unit-box" id="unitShift">Shift</div>
+          <div class="unit-box" id="unitComp">Comp</div>
+        </div>
+        <div class="flags-row">
+          <div class="flag" id="flagZ">Z</div>
+          <div class="flag" id="flagC">C</div>
+          <div class="flag" id="flagN">N</div>
+          <div class="flag" id="flagV">V</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Output Wire -->
+  <div class="output-wire" id="outputWire"></div>
+
+  <!-- Result -->
+  <div class="result-section">
+    <span class="result-label">Result Output</span>
+    <div class="result-box">
+      <div class="result-value" id="resultValue">17</div>
+      <div class="result-binary" id="resultBinary">0001 0001</div>
+    </div>
+  </div>
+
+  <!-- Flags Output -->
+  <div class="flags-output">
+    <div class="flag-out">
+      <div class="flag-out-label">Zero</div>
+      <div class="flag-out-box" id="outZ">0</div>
+    </div>
+    <div class="flag-out">
+      <div class="flag-out-label">Carry</div>
+      <div class="flag-out-box" id="outC">0</div>
+    </div>
+    <div class="flag-out">
+      <div class="flag-out-label">Negative</div>
+      <div class="flag-out-box" id="outN">0</div>
+    </div>
+    <div class="flag-out">
+      <div class="flag-out-label">Overflow</div>
+      <div class="flag-out-box" id="outV">0</div>
+    </div>
+  </div>
+
+  <!-- Compute Button -->
+  <button class="compute-btn" id="computeBtn">&#9654; EXECUTE</button>
+
+</div>
+
+<!-- Info Panel -->
+<div class="info-panel">
+  <h2>Operation Reference Table</h2>
+  <table class="op-table" id="opTable">
+    <thead>
+      <tr>
+        <th>Opcode</th>
+        <th>Operation</th>
+        <th>Expression</th>
+        <th>Unit</th>
+        <th>Flags</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr data-op="ADD"><td class="op-code">ADD</td><td>Addition</td><td>A + B</td><td>Arithmetic</td><td>Z, C, N, V</td></tr>
+      <tr data-op="SUB"><td class="op-code">SUB</td><td>Subtraction</td><td>A − B</td><td>Arithmetic</td><td>Z, C, N, V</td></tr>
+      <tr data-op="MUL"><td class="op-code">MUL</td><td>Multiplication</td><td>A × B</td><td>Arithmetic</td><td>Z, N</td></tr>
+      <tr data-op="DIV"><td class="op-code">DIV</td><td>Division</td><td>A ÷ B</td><td>Arithmetic</td><td>Z, N</td></tr>
+      <tr data-op="AND"><td class="op-code">AND</td><td>Bitwise AND</td><td>A &amp; B</td><td>Logic</td><td>Z, N</td></tr>
+      <tr data-op="OR"><td class="op-code">OR</td><td>Bitwise OR</td><td>A | B</td><td>Logic</td><td>Z, N</td></tr>
+      <tr data-op="XOR"><td class="op-code">XOR</td><td>Bitwise XOR</td><td>A ^ B</td><td>Logic</td><td>Z, N</td></tr>
+      <tr data-op="NOT"><td class="op-code">NOT</td><td>Bitwise NOT</td><td>~A</td><td>Logic</td><td>Z, N</td></tr>
+      <tr data-op="SHL"><td class="op-code">SHL</td><td>Shift Left</td><td>A &lt;&lt; B</td><td>Shift</td><td>Z, C, N</td></tr>
+      <tr data-op="SHR"><td class="op-code">SHR</td><td>Shift Right</td><td>A &gt;&gt; B</td><td>Shift</td><td>Z, N</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<script>
+  /* ── Binary background ── */
+  const bgBits = document.getElementById('bgBits');
+  for (let i = 0; i < 30; i++) {
+    const col = document.createElement('div');
+    col.className = 'bit-col';
+    col.style.left = (Math.random() * 100) + '%';
+    col.style.animationDuration = (8 + Math.random() * 16) + 's';
+    col.style.animationDelay = (-Math.random() * 20) + 's';
+    let bits = '';
+    for (let j = 0; j < 60; j++) bits += (Math.random() > 0.5 ? '1' : '0') + '\n';
+    col.textContent = bits;
+    bgBits.appendChild(col);
+  }
+
+  /* ── State ── */
+  let currentOp = 'ADD';
+
+  /* ── Operation buttons ── */
+  document.querySelectorAll('.op-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.op-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentOp = btn.dataset.op;
+      document.getElementById('aluOpDisplay').textContent = currentOp;
+      highlightTable();
+      compute();
+    });
+  });
+
+  /* ── Highlight table row ── */
+  function highlightTable() {
+    document.querySelectorAll('#opTable tbody tr').forEach(row => {
+      row.classList.toggle('highlight', row.dataset.op === currentOp);
+    });
+  }
+
+  /* ── Format binary ── */
+  function toBinary8(n) {
+    const b = (((n >>> 0) & 0xFF).toString(2)).padStart(8, '0');
+    return b.slice(0, 4) + ' ' + b.slice(4);
+  }
+
+  /* ── Compute ── */
+  function compute() {
+    const a = parseInt(document.getElementById('inputA').value) || 0;
+    const b = parseInt(document.getElementById('inputB').value) || 0;
+
+    let result = 0;
+    let carry = 0, overflow = 0;
+
+    switch (currentOp) {
+      case 'ADD':
+        result = a + b;
+        carry = (result > 255 || result < -128) ? 1 : 0;
+        overflow = ((a > 0 && b > 0 && result < 0) || (a < 0 && b < 0 && result > 0)) ? 1 : 0;
+        break;
+      case 'SUB':
+        result = a - b;
+        carry = (result < 0) ? 1 : 0;
+        overflow = ((a > 0 && b < 0 && result < 0) || (a < 0 && b > 0 && result > 0)) ? 1 : 0;
+        break;
+      case 'MUL': result = a * b; break;
+      case 'DIV': result = b !== 0 ? Math.trunc(a / b) : 0; break;
+      case 'AND': result = a & b; break;
+      case 'OR':  result = a | b; break;
+      case 'XOR': result = a ^ b; break;
+      case 'NOT': result = ~a; break;
+      case 'SHL': result = (a << b) & 0xFFFF; carry = (a << b) > 0xFFFF ? 1 : 0; break;
+      case 'SHR': result = a >> b; break;
+    }
+
+    const zero     = result === 0 ? 1 : 0;
+    const negative = result < 0   ? 1 : 0;
+
+    /* Update result display */
+    document.getElementById('resultValue').textContent = result;
+    document.getElementById('resultBinary').textContent = toBinary8(result);
+
+    /* Update internal flags */
+    ['Z','C','N','V'].forEach(f => {
+      const el = document.getElementById('flag' + f);
+      const val = f === 'Z' ? zero : f === 'C' ? carry : f === 'N' ? negative : overflow;
+      el.classList.toggle('active', val === 1);
+    });
+
+    /* Update output flags */
+    const outZ = document.getElementById('outZ');
+    const outC = document.getElementById('outC');
+    const outN = document.getElementById('outN');
+    const outV = document.getElementById('outV');
+
+    outZ.textContent = zero;
+    outZ.className = 'flag-out-box' + (zero ? ' zero-on' : '');
+
+    outC.textContent = carry;
+    outC.className = 'flag-out-box' + (carry ? ' carry-on' : '');
+
+    outN.textContent = negative;
+    outN.className = 'flag-out-box' + (negative ? ' on' : '');
+
+    outV.textContent = overflow;
+    outV.className = 'flag-out-box' + (overflow ? ' on' : '');
+
+    /* Light up relevant unit */
+    const arithOps = ['ADD','SUB','MUL','DIV'];
+    const logicOps = ['AND','OR','XOR','NOT'];
+    const shiftOps = ['SHL','SHR'];
+    document.getElementById('unitArith').classList.toggle('lit', arithOps.includes(currentOp));
+    document.getElementById('unitLogic').classList.toggle('lit', logicOps.includes(currentOp));
+    document.getElementById('unitShift').classList.toggle('lit', shiftOps.includes(currentOp));
+    document.getElementById('unitComp').classList.remove('lit');
+
+    /* Pulse wires */
+    ['wireA','wireB','outputWire'].forEach(id => {
+      const el = document.getElementById(id);
+      el.classList.remove('pulse');
+      void el.offsetWidth;
+      el.classList.add('pulse');
+    });
+  }
+
+  /* ── Compute button ── */
+  document.getElementById('computeBtn').addEventListener('click', compute);
+
+  /* ── Live compute on input change ── */
+  document.getElementById('inputA').addEventListener('input', compute);
+  document.getElementById('inputB').addEventListener('input', compute);
+
+  /* ── Init ── */
+  highlightTable();
+  compute();
+</script>
+</body>
+</html>
