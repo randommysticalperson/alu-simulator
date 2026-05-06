@@ -5,63 +5,43 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Latch / Trigger Control Unit — Pure CSS</title>
 <style>
-/* ═══════════════════════════════════════════════════════
-   RESET & VARIABLES
-═══════════════════════════════════════════════════════ */
+/* ── Reset ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
 :root {
-  --bg:       #060c18;
-  --panel:    #0b1428;
-  --border:   #1a3060;
-  --cyan:     #7df9ff;
-  --green:    #2ed573;
-  --red:      #ff4757;
-  --orange:   #ff9f43;
-  --yellow:   #ffd32a;
-  --purple:   #a29bfe;
-  --dim:      #334466;
-  --off:      #1a3060;
+  --bg:     #060c18;
+  --panel:  #0b1428;
+  --border: #1a3060;
+  --cyan:   #7df9ff;
+  --green:  #2ed573;
+  --red:    #ff4757;
+  --orange: #ff9f43;
+  --yellow: #ffd32a;
+  --purple: #a29bfe;
+  --dim:    #334466;
+  --off:    #1a3060;
 }
-
 body {
-  background: var(--bg);
-  color: #c8d8f0;
+  background: var(--bg); color: #c8d8f0;
   font-family: 'Courier New', monospace;
-  min-height: 100vh;
-  padding: 28px 16px 80px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  min-height: 100vh; padding: 28px 16px 80px;
+  display: flex; flex-direction: column; align-items: center;
 }
+/* Hide all checkboxes */
+input[type="checkbox"] { position: absolute; opacity: 0; pointer-events: none; width: 0; height: 0; }
 
-/* Hide all real checkboxes */
-input[type="checkbox"] { display: none; }
-
-/* ═══════════════════════════════════════════════════════
-   PAGE HEADER
-═══════════════════════════════════════════════════════ */
-.page-title {
-  font-size: 1.7rem; letter-spacing: 5px; color: var(--cyan);
-  text-shadow: 0 0 20px #7df9ff88; text-transform: uppercase; margin-bottom: 4px;
-}
-.page-sub {
-  font-size: .7rem; letter-spacing: 3px; color: var(--dim); margin-bottom: 8px;
-}
+/* ── Header ── */
+.page-title { font-size: 1.7rem; letter-spacing: 5px; color: var(--cyan);
+  text-shadow: 0 0 20px #7df9ff88; text-transform: uppercase; margin-bottom: 4px; }
+.page-sub   { font-size: .7rem; letter-spacing: 3px; color: var(--dim); margin-bottom: 8px; }
 .pure-badge {
   font-size: .6rem; letter-spacing: 2px; padding: 3px 14px;
   border: 1px solid var(--green); border-radius: 20px; color: var(--green);
   text-transform: uppercase; margin-bottom: 32px;
   animation: badgePulse 2s ease-in-out infinite;
 }
-@keyframes badgePulse {
-  0%,100% { box-shadow: 0 0 6px #2ed57333; }
-  50%      { box-shadow: 0 0 16px #2ed57388; }
-}
+@keyframes badgePulse { 0%,100%{box-shadow:0 0 6px #2ed57333} 50%{box-shadow:0 0 16px #2ed57388} }
 
-/* ═══════════════════════════════════════════════════════
-   CLOCK STRIP  — pure CSS scrolling square wave
-═══════════════════════════════════════════════════════ */
+/* ── Clock strip ── */
 .clock-strip {
   display: flex; align-items: center; gap: 16px;
   background: var(--panel); border: 1px solid var(--border);
@@ -69,43 +49,19 @@ input[type="checkbox"] { display: none; }
   width: 100%; max-width: 900px;
 }
 .clk-label { font-size: .65rem; letter-spacing: 2px; color: var(--dim); text-transform: uppercase; }
-.clk-wave {
-  flex: 1; height: 38px; position: relative; overflow: hidden;
-  border: 1px solid var(--border); border-radius: 4px; background: var(--bg);
+.clk-wave  {
+  flex: 1; height: 38px; overflow: hidden;
+  border: 1px solid var(--border); border-radius: 4px; background: var(--bg); position: relative;
 }
-/* Square wave via CSS gradient + animation */
 .clk-wave::before {
-  content: '';
-  position: absolute; inset: 0;
-  background:
-    repeating-linear-gradient(
-      90deg,
-      var(--green) 0,   var(--green) 18px,
-      transparent 18px, transparent 19px,
-      transparent 19px, transparent 37px,
-      transparent 37px, transparent 38px
-    );
-  mask:
-    repeating-linear-gradient(
-      90deg,
-      #000 0px,  #000 18px,
-      transparent 18px, transparent 19px,
-      #000 19px, #000 37px,
-      transparent 37px, transparent 38px
-    );
-  -webkit-mask:
-    repeating-linear-gradient(
-      90deg,
-      #000 0px,  #000 18px,
-      transparent 18px, transparent 19px,
-      #000 19px, #000 37px,
-      transparent 37px, transparent 38px
-    );
+  content: ''; position: absolute; inset: 0;
+  background: repeating-linear-gradient(90deg, var(--green) 0, var(--green) 18px, transparent 18px, transparent 38px);
+  mask: repeating-linear-gradient(90deg, #000 0,#000 18px, transparent 18px, transparent 19px, #000 19px, #000 37px, transparent 37px, transparent 38px);
+  -webkit-mask: repeating-linear-gradient(90deg, #000 0,#000 18px, transparent 18px, transparent 19px, #000 19px, #000 37px, transparent 37px, transparent 38px);
   animation: clkScroll 1s linear infinite;
   filter: drop-shadow(0 0 3px var(--green));
 }
-@keyframes clkScroll { from { transform: translateX(0); } to { transform: translateX(-38px); } }
-
+@keyframes clkScroll { from{transform:translateX(0)} to{transform:translateX(-38px)} }
 .clk-dot {
   width: 11px; height: 11px; border-radius: 50%;
   background: var(--green); box-shadow: 0 0 10px var(--green);
@@ -113,23 +69,17 @@ input[type="checkbox"] { display: none; }
 }
 @keyframes clkBlink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
 
-/* ═══════════════════════════════════════════════════════
-   MAIN GRID
-═══════════════════════════════════════════════════════ */
+/* ── Grid ── */
 .grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  width: 100%; max-width: 900px;
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 24px; width: 100%; max-width: 900px;
 }
-@media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
+@media(max-width:640px){ .grid { grid-template-columns: 1fr; } }
 
-/* ═══════════════════════════════════════════════════════
-   CARD
-═══════════════════════════════════════════════════════ */
+/* ── Card ── */
 .card {
   background: var(--panel); border: 1px solid var(--border);
-  border-radius: 12px; padding: 20px; position: relative; overflow: hidden;
+  border-radius: 12px; padding: 20px;
 }
 .card-title {
   font-size: .68rem; letter-spacing: 3px; color: var(--cyan);
@@ -137,46 +87,26 @@ input[type="checkbox"] { display: none; }
   border-bottom: 1px solid var(--border); padding-bottom: 8px;
 }
 
-/* ═══════════════════════════════════════════════════════
-   GENERIC LATCH LAYOUT
-   Structure:
-     .latch-wrap > .ff-row > .pins-in + .ff-box + .pins-out
-                 > .ctrl-row
-                 > .truth-table
-═══════════════════════════════════════════════════════ */
-.ff-row {
-  display: flex; align-items: center; justify-content: center; gap: 0;
-  margin-bottom: 18px;
-}
-.pins-in, .pins-out {
-  display: flex; flex-direction: column; gap: 20px;
-}
-.pins-in { align-items: flex-end; }
-.pins-out { align-items: flex-start; }
+/* ── FF diagram row ── */
+.ff-row { display: flex; align-items: center; justify-content: center; margin-bottom: 18px; }
+.pins-in  { display: flex; flex-direction: column; gap: 20px; align-items: flex-end; }
+.pins-out { display: flex; flex-direction: column; gap: 20px; align-items: flex-start; }
+.pin-row  { display: flex; align-items: center; }
 
-/* Pin wire + label row */
-.pin-row { display: flex; align-items: center; gap: 0; }
-
-/* Wire segment */
-.wire {
-  width: 30px; height: 2px;
-  background: var(--off);
-  transition: background .25s, box-shadow .25s;
-  position: relative;
-}
+/* Wire */
+.wire { width: 30px; height: 2px; background: var(--off); transition: background .25s, box-shadow .25s; }
 
 /* Pin label */
 .pin-lbl {
   font-size: .62rem; letter-spacing: 1px; padding: 3px 8px;
   border-radius: 3px; background: #0a1628; border: 1px solid var(--border);
-  color: var(--dim); white-space: nowrap;
-  transition: color .25s, border-color .25s, box-shadow .25s;
+  color: var(--dim); white-space: nowrap; transition: color .25s, border-color .25s, box-shadow .25s;
 }
 
 /* FF box */
 .ff-box {
   width: 104px; min-height: 96px;
-  background: linear-gradient(145deg, #0d1f3c, #0a1628);
+  background: linear-gradient(145deg,#0d1f3c,#0a1628);
   border: 2px solid var(--border); border-radius: 8px;
   display: flex; flex-direction: column; align-items: center;
   justify-content: center; gap: 6px; padding: 10px 6px;
@@ -185,7 +115,6 @@ input[type="checkbox"] { display: none; }
 .ff-name { font-size: .72rem; letter-spacing: 2px; color: var(--cyan); text-transform: uppercase; }
 .ff-type { font-size: .52rem; letter-spacing: 1px; color: var(--dim); text-transform: uppercase; }
 
-/* Q / Q̄ state bits */
 .state-row { display: flex; gap: 8px; margin-top: 4px; }
 .state-col { display: flex; flex-direction: column; align-items: center; gap: 2px; }
 .state-bit {
@@ -196,777 +125,444 @@ input[type="checkbox"] { display: none; }
 }
 .state-lbl { font-size: .5rem; color: var(--dim); letter-spacing: 1px; }
 
-/* CLK pin below FF box */
-.clk-pin {
-  display: flex; flex-direction: column; align-items: center; gap: 0;
-  margin-top: 4px;
-}
-.clk-wire-v {
-  width: 2px; height: 14px; background: var(--off);
-  transition: background .25s, box-shadow .25s;
-}
+.clk-pin { display: flex; flex-direction: column; align-items: center; margin-top: 4px; }
+.clk-wire-v { width: 2px; height: 14px; background: var(--off); transition: background .25s; }
 .clk-pin-lbl { font-size: .5rem; color: var(--dim); letter-spacing: 1px; margin-top: 2px; }
 
-/* ── ACTIVE STATES driven by :checked ── */
-
-/* Wire ON */
-.wire.on, .wire-on { background: var(--cyan); box-shadow: 0 0 7px var(--cyan); }
-.clk-wire-v.on     { background: var(--green); box-shadow: 0 0 7px var(--green); }
-
-/* Pin label HIGH */
-.pin-lbl.high { color: var(--green); border-color: var(--green); box-shadow: 0 0 7px #2ed57344; }
-.pin-lbl.low  { color: var(--red);   border-color: var(--red);   box-shadow: 0 0 7px #ff475744; }
-
-/* Q bit HIGH */
-.state-bit.q1 { color: var(--green); border-color: var(--green); box-shadow: 0 0 10px #2ed57366; background: #001a0a; }
-/* Q bit LOW */
-.state-bit.q0 { color: var(--red);   border-color: var(--red);   box-shadow: 0 0 10px #ff475766; background: #1a0a0a; }
-
-/* FF box triggered */
-.ff-box.on {
-  border-color: var(--cyan);
-  box-shadow: 0 0 22px #7df9ff44;
-  animation: ffGlow .5s ease-out;
+/* ── Buttons (labels) ── */
+.ctrl-row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 14px; }
+.btn {
+  padding: 7px 14px; border: 1.5px solid var(--border); border-radius: 6px;
+  background: #0a1628; color: var(--dim);
+  font-family: 'Courier New', monospace; font-size: .72rem;
+  letter-spacing: 1px; cursor: pointer; text-transform: uppercase;
+  user-select: none; display: inline-block; transition: all .2s;
 }
+.btn:hover { border-color: var(--cyan); color: var(--cyan); box-shadow: 0 0 10px #7df9ff33; }
+.btn-set  { border-color: #1a4a1a; color: #2a8a2a; }
+.btn-set:hover  { border-color: var(--green); color: var(--green); box-shadow: 0 0 10px #2ed57333; }
+.btn-rst  { border-color: #4a1a1a; color: #8a2a2a; }
+.btn-rst:hover  { border-color: var(--red); color: var(--red); box-shadow: 0 0 10px #ff475733; }
+.btn-clk  { border-color: var(--yellow); color: var(--yellow); animation: clkBtnPulse 1s steps(1) infinite; }
+@keyframes clkBtnPulse { 0%,49%{box-shadow:0 0 8px #ffd32a55} 50%,100%{box-shadow:none} }
+
+/* ── Truth table ── */
+.tt { width: 100%; border-collapse: collapse; font-size: .67rem; }
+.tt th { color: var(--dim); letter-spacing: 2px; text-transform: uppercase; padding: 5px 8px; border-bottom: 1px solid var(--border); text-align: center; }
+.tt td { padding: 5px 8px; text-align: center; color: #4466aa; border-bottom: 1px solid #0d1525; }
+.tt .v1 { color: var(--green); }
+.tt .v0 { color: var(--red); }
+.tt .vx { color: var(--orange); }
+
+/* ── Toggle indicator ── */
+.tog-ind {
+  font-size: .52rem; color: var(--purple); letter-spacing: 1px;
+  text-transform: uppercase; opacity: 0; transition: opacity .3s;
+  animation: togBlink .5s steps(1) infinite;
+}
+@keyframes togBlink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
+
+/* ═══════════════════════════════════════════════════════
+   ACTIVE STATE RULES
+   Key: checkboxes are placed BEFORE the card in the DOM.
+   Selector pattern:  #id:checked ~ .card .target-class
+═══════════════════════════════════════════════════════ */
+
+/* ── Shared glow keyframes ── */
 @keyframes ffGlow {
   0%  { box-shadow: 0 0 0 var(--cyan); }
   40% { box-shadow: 0 0 32px #7df9ffaa; }
   100%{ box-shadow: 0 0 14px #7df9ff44; }
 }
-
-/* ═══════════════════════════════════════════════════════
-   CONTROL BUTTONS  (styled <label> elements)
-═══════════════════════════════════════════════════════ */
-.ctrl-row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 14px; }
-
-.btn {
-  padding: 7px 14px;
-  border: 1.5px solid var(--border); border-radius: 6px;
-  background: #0a1628; color: var(--dim);
-  font-family: 'Courier New', monospace; font-size: .72rem;
-  letter-spacing: 1px; cursor: pointer;
-  text-transform: uppercase; user-select: none;
-  transition: all .2s; display: inline-block;
-}
-.btn:hover { border-color: var(--cyan); color: var(--cyan); box-shadow: 0 0 10px #7df9ff33; }
-.btn.set  { border-color: #1a4a1a; color: #2a6a2a; }
-.btn.rst  { border-color: #4a1a1a; color: #6a2a2a; }
-.btn.clkb { border-color: var(--yellow); color: var(--yellow); animation: clkBtnPulse 1s steps(1) infinite; }
-@keyframes clkBtnPulse { 0%,49%{box-shadow:0 0 8px #ffd32a55} 50%,100%{box-shadow:none} }
-
-/* ═══════════════════════════════════════════════════════
-   TRUTH TABLES
-═══════════════════════════════════════════════════════ */
-.tt { width: 100%; border-collapse: collapse; font-size: .67rem; }
-.tt th {
-  color: var(--dim); letter-spacing: 2px; text-transform: uppercase;
-  padding: 5px 8px; border-bottom: 1px solid var(--border); text-align: center;
-}
-.tt td { padding: 5px 8px; text-align: center; color: #4466aa; border-bottom: 1px solid #0d1525; }
-.tt .v1 { color: var(--green); }
-.tt .v0 { color: var(--red); }
-.tt .vx { color: var(--orange); }
-/* Active row highlight — driven by CSS sibling selector magic below */
-.tt tr.hl td { color: var(--cyan); background: #0d2040; }
-
-/* ═══════════════════════════════════════════════════════
-   ANIMATED WIRE PULSE  (triggered on :checked change)
-═══════════════════════════════════════════════════════ */
 @keyframes wirePulse {
-  0%   { box-shadow: 0 0 0 var(--cyan); }
-  50%  { box-shadow: 0 0 16px var(--cyan); }
-  100% { box-shadow: 0 0 5px var(--cyan); }
-}
-@keyframes wireOff {
-  0%   { box-shadow: 0 0 5px var(--cyan); }
-  100% { box-shadow: none; }
+  0%  { box-shadow: 0 0 0; }
+  50% { box-shadow: 0 0 14px var(--cyan); }
+  100%{ box-shadow: 0 0 5px var(--cyan); }
 }
 
-/* ═══════════════════════════════════════════════════════
-   ██  SR  LATCH  ██
-   Checkboxes: #sr-s (Set), #sr-r (Reset)
-   State is modelled as: SET=S·R̄, RESET=R·S̄, HOLD=S̄·R̄
-═══════════════════════════════════════════════════════ */
+/* ════════════ SR LATCH ════════════ */
+/* S active */
+#sr-s:checked ~ #card-sr .wire-s   { background: var(--cyan); box-shadow: 0 0 7px var(--cyan); animation: wirePulse .4s ease-out; }
+#sr-s:checked ~ #card-sr .lbl-s    { color: var(--green); border-color: var(--green); box-shadow: 0 0 7px #2ed57344; }
+/* R active */
+#sr-r:checked ~ #card-sr .wire-r   { background: var(--cyan); box-shadow: 0 0 7px var(--cyan); animation: wirePulse .4s ease-out; }
+#sr-r:checked ~ #card-sr .lbl-r    { color: var(--green); border-color: var(--green); box-shadow: 0 0 7px #2ed57344; }
+/* FF box glow */
+#sr-s:checked ~ #card-sr .ff-box,
+#sr-r:checked ~ #card-sr .ff-box   { border-color: var(--cyan); box-shadow: 0 0 22px #7df9ff44; animation: ffGlow .5s ease-out; }
+/* SET: S=1 R=0 → Q=1 */
+#sr-s:checked ~ #card-sr .bit-q    { color: var(--green); border-color: var(--green); box-shadow: 0 0 10px #2ed57366; background: #001a0a; }
+#sr-s:checked ~ #card-sr .bit-qn   { color: var(--red);   border-color: var(--red);   box-shadow: 0 0 10px #ff475766; background: #1a0a0a; }
+#sr-s:checked ~ #card-sr .wire-q   { background: var(--green); box-shadow: 0 0 7px var(--green); }
+#sr-s:checked ~ #card-sr .wire-qn  { background: var(--off); box-shadow: none; }
+#sr-s:checked ~ #card-sr .lbl-q    { color: var(--green); border-color: var(--green); }
+#sr-s:checked ~ #card-sr .lbl-qn   { color: var(--red);   border-color: var(--red); }
+/* RESET: R=1 → Q=0 (declared after SET so R wins when both active) */
+#sr-r:checked ~ #card-sr .bit-q    { color: var(--red);   border-color: var(--red);   box-shadow: 0 0 10px #ff475766; background: #1a0a0a; }
+#sr-r:checked ~ #card-sr .bit-qn   { color: var(--green); border-color: var(--green); box-shadow: 0 0 10px #2ed57366; background: #001a0a; }
+#sr-r:checked ~ #card-sr .wire-q   { background: var(--off); box-shadow: none; }
+#sr-r:checked ~ #card-sr .wire-qn  { background: var(--green); box-shadow: 0 0 7px var(--green); }
+#sr-r:checked ~ #card-sr .lbl-q    { color: var(--red);   border-color: var(--red); }
+#sr-r:checked ~ #card-sr .lbl-qn   { color: var(--green); border-color: var(--green); }
+/* Truth table rows */
+#sr-s:checked ~ #card-sr .tt-set td { color: var(--cyan); background: #0d2040; }
+#sr-r:checked ~ #card-sr .tt-rst td { color: var(--cyan); background: #0d2040; }
 
-/* S wire & label */
-#sr-s:checked ~ .sr-wrap .sr-s-wire   { background: var(--cyan); box-shadow: 0 0 7px var(--cyan); animation: wirePulse .4s ease-out; }
-#sr-s:checked ~ .sr-wrap .sr-s-lbl    { color: var(--green); border-color: var(--green); box-shadow: 0 0 7px #2ed57344; }
-
-/* R wire & label */
-#sr-r:checked ~ .sr-wrap .sr-r-wire   { background: var(--cyan); box-shadow: 0 0 7px var(--cyan); animation: wirePulse .4s ease-out; }
-#sr-r:checked ~ .sr-wrap .sr-r-lbl    { color: var(--green); border-color: var(--green); box-shadow: 0 0 7px #2ed57344; }
-
-/* FF box glow when either is checked */
-#sr-s:checked ~ .sr-wrap .sr-box,
-#sr-r:checked ~ .sr-wrap .sr-box      { border-color: var(--cyan); box-shadow: 0 0 22px #7df9ff44; animation: ffGlow .5s ease-out; }
-
-/* Q=1 when S=1, R=0 */
-#sr-s:checked:not(#sr-r:checked) ~ .sr-wrap .sr-q-bit  { color: var(--green); border-color: var(--green); box-shadow: 0 0 10px #2ed57366; background: #001a0a; }
-#sr-s:checked:not(#sr-r:checked) ~ .sr-wrap .sr-qn-bit { color: var(--red);   border-color: var(--red);   box-shadow: 0 0 10px #ff475766; background: #1a0a0a; }
-#sr-s:checked:not(#sr-r:checked) ~ .sr-wrap .sr-q-wire  { background: var(--green); box-shadow: 0 0 7px var(--green); }
-#sr-s:checked:not(#sr-r:checked) ~ .sr-wrap .sr-qn-wire { background: var(--off); }
-#sr-s:checked:not(#sr-r:checked) ~ .sr-wrap .sr-q-out   { color: var(--green); border-color: var(--green); }
-#sr-s:checked:not(#sr-r:checked) ~ .sr-wrap .sr-qn-out  { color: var(--red);   border-color: var(--red); }
-
-/* Q=0 when R=1, S=0 */
-#sr-r:checked ~ .sr-wrap .sr-q-bit   { color: var(--red);   border-color: var(--red);   box-shadow: 0 0 10px #ff475766; background: #1a0a0a; }
-#sr-r:checked ~ .sr-wrap .sr-qn-bit  { color: var(--green); border-color: var(--green); box-shadow: 0 0 10px #2ed57366; background: #001a0a; }
-#sr-r:checked ~ .sr-wrap .sr-q-wire  { background: var(--off); }
-#sr-r:checked ~ .sr-wrap .sr-qn-wire { background: var(--green); box-shadow: 0 0 7px var(--green); }
-#sr-r:checked ~ .sr-wrap .sr-q-out   { color: var(--red);   border-color: var(--red); }
-#sr-r:checked ~ .sr-wrap .sr-qn-out  { color: var(--green); border-color: var(--green); }
-
-/* Invalid: both S=1 R=1 */
-#sr-s:checked ~ .sr-wrap .sr-q-bit,
-#sr-r:checked ~ .sr-wrap .sr-q-bit   { }  /* overridden below */
-
-/* Truth table row highlights */
-/* Hold row (neither checked) — always visible as default */
-/* Set row */
-#sr-s:checked ~ .sr-wrap .sr-tt .sr-row-set  { color: var(--cyan); background: #0d2040; }
-#sr-s:checked ~ .sr-wrap .sr-tt .sr-row-set td { color: var(--cyan); background: #0d2040; }
-/* Reset row */
-#sr-r:checked ~ .sr-wrap .sr-tt .sr-row-rst  td { color: var(--cyan); background: #0d2040; }
-/* Invalid row */
-#sr-s:checked ~ .sr-wrap .sr-tt .sr-row-inv td { color: var(--orange); background: #1a0a00; }
-
-/* ═══════════════════════════════════════════════════════
-   ██  D  FLIP-FLOP  ██
-   Checkboxes: #d-d (Data), #d-clk (Clock pulse)
-   Q latches D on rising edge of CLK
-═══════════════════════════════════════════════════════ */
-/* D wire */
-#d-d:checked ~ .d-wrap .d-d-wire    { background: var(--cyan); box-shadow: 0 0 7px var(--cyan); animation: wirePulse .4s ease-out; }
-#d-d:checked ~ .d-wrap .d-d-lbl     { color: var(--green); border-color: var(--green); box-shadow: 0 0 7px #2ed57344; }
-
-/* CLK wire */
-#d-clk:checked ~ .d-wrap .d-clk-wire  { background: var(--cyan); box-shadow: 0 0 7px var(--cyan); animation: wirePulse .4s ease-out; }
-#d-clk:checked ~ .d-wrap .d-clk-lbl   { color: var(--yellow); border-color: var(--yellow); }
-#d-clk:checked ~ .d-wrap .d-clk-v     { background: var(--green); box-shadow: 0 0 7px var(--green); }
-
-/* FF box glow on CLK */
-#d-clk:checked ~ .d-wrap .d-box { border-color: var(--cyan); box-shadow: 0 0 22px #7df9ff44; animation: ffGlow .5s ease-out; }
-
-/* Q=D when CLK=1 */
-/* D=1, CLK=1 → Q=1 */
-#d-d:checked ~ .d-wrap .d-q-bit   { color: var(--dim); border-color: var(--border); background: var(--bg); } /* default hold */
-#d-clk:checked ~ .d-wrap .d-q-bit  { color: var(--red);   border-color: var(--red);   box-shadow: 0 0 10px #ff475766; background: #1a0a0a; } /* CLK=1,D=0 → Q=0 */
-#d-clk:checked ~ .d-wrap .d-qn-bit { color: var(--green); border-color: var(--green); box-shadow: 0 0 10px #2ed57366; background: #001a0a; }
-#d-clk:checked ~ .d-wrap .d-q-wire  { background: var(--off); }
-#d-clk:checked ~ .d-wrap .d-qn-wire { background: var(--green); box-shadow: 0 0 7px var(--green); }
-#d-clk:checked ~ .d-wrap .d-q-out   { color: var(--red);   border-color: var(--red); }
-#d-clk:checked ~ .d-wrap .d-qn-out  { color: var(--green); border-color: var(--green); }
-
-/* D=1 AND CLK=1 → Q=1 (override) */
-#d-d:checked ~ .d-wrap .d-clk-override { display: block; } /* trick: hidden element */
-/* We use stacking order: D checked sets Q=1 base, CLK checked overrides */
-#d-d:checked ~ .d-wrap .d-q-bit   { color: var(--green); border-color: var(--green); box-shadow: 0 0 10px #2ed57366; background: #001a0a; }
-#d-d:checked ~ .d-wrap .d-qn-bit  { color: var(--red);   border-color: var(--red);   box-shadow: 0 0 10px #ff475766; background: #1a0a0a; }
-#d-d:checked ~ .d-wrap .d-q-wire  { background: var(--green); box-shadow: 0 0 7px var(--green); }
-#d-d:checked ~ .d-wrap .d-qn-wire { background: var(--off); }
-#d-d:checked ~ .d-wrap .d-q-out   { color: var(--green); border-color: var(--green); }
-#d-d:checked ~ .d-wrap .d-qn-out  { color: var(--red);   border-color: var(--red); }
-
-/* CLK=1 overrides D=1 back to Q=D */
-/* When both checked: D=1 CLK=1 → Q=1 (D-checked rule wins because it comes later in cascade) */
-/* When only CLK=1: Q=0 (CLK-checked rule wins) */
-/* This is the natural CSS cascade — D rule is declared AFTER CLK rule so D wins when both active */
-
+/* ════════════ D FLIP-FLOP ════════════ */
+#d-d:checked   ~ #card-d .wire-d    { background: var(--cyan); box-shadow: 0 0 7px var(--cyan); animation: wirePulse .4s ease-out; }
+#d-d:checked   ~ #card-d .lbl-d     { color: var(--green); border-color: var(--green); box-shadow: 0 0 7px #2ed57344; }
+#d-clk:checked ~ #card-d .wire-clk  { background: var(--cyan); box-shadow: 0 0 7px var(--cyan); animation: wirePulse .4s ease-out; }
+#d-clk:checked ~ #card-d .lbl-clk   { color: var(--yellow); border-color: var(--yellow); }
+#d-clk:checked ~ #card-d .clk-wire-v{ background: var(--green); box-shadow: 0 0 7px var(--green); }
+#d-clk:checked ~ #card-d .ff-box    { border-color: var(--cyan); box-shadow: 0 0 22px #7df9ff44; animation: ffGlow .5s ease-out; }
+/* CLK=1, D=0 → Q=0 */
+#d-clk:checked ~ #card-d .bit-q     { color: var(--red);   border-color: var(--red);   box-shadow: 0 0 10px #ff475766; background: #1a0a0a; }
+#d-clk:checked ~ #card-d .bit-qn    { color: var(--green); border-color: var(--green); box-shadow: 0 0 10px #2ed57366; background: #001a0a; }
+#d-clk:checked ~ #card-d .wire-q    { background: var(--off); }
+#d-clk:checked ~ #card-d .wire-qn   { background: var(--green); box-shadow: 0 0 7px var(--green); }
+#d-clk:checked ~ #card-d .lbl-q     { color: var(--red);   border-color: var(--red); }
+#d-clk:checked ~ #card-d .lbl-qn    { color: var(--green); border-color: var(--green); }
+/* D=1 → Q=1 (declared after CLK so D wins when both active = D=1,CLK=1 → Q=1) */
+#d-d:checked ~ #card-d .bit-q       { color: var(--green); border-color: var(--green); box-shadow: 0 0 10px #2ed57366; background: #001a0a; }
+#d-d:checked ~ #card-d .bit-qn      { color: var(--red);   border-color: var(--red);   box-shadow: 0 0 10px #ff475766; background: #1a0a0a; }
+#d-d:checked ~ #card-d .wire-q      { background: var(--green); box-shadow: 0 0 7px var(--green); }
+#d-d:checked ~ #card-d .wire-qn     { background: var(--off); }
+#d-d:checked ~ #card-d .lbl-q       { color: var(--green); border-color: var(--green); }
+#d-d:checked ~ #card-d .lbl-qn      { color: var(--red);   border-color: var(--red); }
 /* Truth table */
-#d-clk:checked ~ .d-wrap .d-tt .d-row-clk td { color: var(--cyan); background: #0d2040; }
-#d-d:checked   ~ .d-wrap .d-tt .d-row-d1  td { color: var(--cyan); background: #0d2040; }
+#d-clk:checked ~ #card-d .tt-clk0 td { color: var(--cyan); background: #0d2040; }
+#d-d:checked   ~ #card-d .tt-d1   td { color: var(--cyan); background: #0d2040; }
 
-/* ═══════════════════════════════════════════════════════
-   ██  JK  FLIP-FLOP  ██
-   Checkboxes: #jk-j, #jk-k, #jk-clk
-═══════════════════════════════════════════════════════ */
-#jk-j:checked ~ .jk-wrap .jk-j-wire   { background: var(--cyan); box-shadow: 0 0 7px var(--cyan); animation: wirePulse .4s ease-out; }
-#jk-j:checked ~ .jk-wrap .jk-j-lbl    { color: var(--green); border-color: var(--green); box-shadow: 0 0 7px #2ed57344; }
-#jk-k:checked ~ .jk-wrap .jk-k-wire   { background: var(--cyan); box-shadow: 0 0 7px var(--cyan); animation: wirePulse .4s ease-out; }
-#jk-k:checked ~ .jk-wrap .jk-k-lbl    { color: var(--green); border-color: var(--green); box-shadow: 0 0 7px #2ed57344; }
-#jk-clk:checked ~ .jk-wrap .jk-clk-v  { background: var(--green); box-shadow: 0 0 7px var(--green); }
-#jk-clk:checked ~ .jk-wrap .jk-box    { border-color: var(--cyan); box-shadow: 0 0 22px #7df9ff44; animation: ffGlow .5s ease-out; }
-
-/* J=1 K=0 → SET */
-#jk-j:checked ~ .jk-wrap .jk-q-bit    { color: var(--green); border-color: var(--green); box-shadow: 0 0 10px #2ed57366; background: #001a0a; }
-#jk-j:checked ~ .jk-wrap .jk-qn-bit   { color: var(--red);   border-color: var(--red);   box-shadow: 0 0 10px #ff475766; background: #1a0a0a; }
-#jk-j:checked ~ .jk-wrap .jk-q-wire   { background: var(--green); box-shadow: 0 0 7px var(--green); }
-#jk-j:checked ~ .jk-wrap .jk-qn-wire  { background: var(--off); }
-#jk-j:checked ~ .jk-wrap .jk-q-out    { color: var(--green); border-color: var(--green); }
-#jk-j:checked ~ .jk-wrap .jk-qn-out   { color: var(--red);   border-color: var(--red); }
-
-/* K=1 overrides → RESET (K rule declared after J so K wins when both active) */
-#jk-k:checked ~ .jk-wrap .jk-q-bit    { color: var(--red);   border-color: var(--red);   box-shadow: 0 0 10px #ff475766; background: #1a0a0a; }
-#jk-k:checked ~ .jk-wrap .jk-qn-bit   { color: var(--green); border-color: var(--green); box-shadow: 0 0 10px #2ed57366; background: #001a0a; }
-#jk-k:checked ~ .jk-wrap .jk-q-wire   { background: var(--off); }
-#jk-k:checked ~ .jk-wrap .jk-qn-wire  { background: var(--green); box-shadow: 0 0 7px var(--green); }
-#jk-k:checked ~ .jk-wrap .jk-q-out    { color: var(--red);   border-color: var(--red); }
-#jk-k:checked ~ .jk-wrap .jk-qn-out   { color: var(--green); border-color: var(--green); }
-
-/* J=1 K=1 → TOGGLE animation (purple) */
-#jk-j:checked ~ .jk-wrap .jk-k-override { display: none; }
-/* When both J and K checked, show toggle state */
-#jk-j:checked ~ .jk-wrap .jk-q-bit,
-#jk-k:checked ~ .jk-wrap .jk-q-bit { }
-/* Toggle: both J and K checked — use animation to show toggling */
-#jk-j:checked ~ .jk-wrap .jk-toggle-indicator { opacity: 1; }
-#jk-k:checked ~ .jk-wrap .jk-toggle-indicator { opacity: 1; }
-
-.jk-toggle-indicator {
-  font-size: .55rem; color: var(--purple); letter-spacing: 1px;
-  text-transform: uppercase; opacity: 0; transition: opacity .3s;
-  animation: toggleBlink 0.6s steps(1) infinite;
-  margin-top: 2px;
-}
-@keyframes toggleBlink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
-
-/* Truth table highlights */
-#jk-j:checked ~ .jk-wrap .jk-tt .jk-row-set td { color: var(--cyan); background: #0d2040; }
-#jk-k:checked ~ .jk-wrap .jk-tt .jk-row-rst td { color: var(--cyan); background: #0d2040; }
-
-/* ═══════════════════════════════════════════════════════
-   ██  T  FLIP-FLOP  ██
-   Checkboxes: #t-t, #t-clk
-═══════════════════════════════════════════════════════ */
-#t-t:checked ~ .t-wrap .t-t-wire    { background: var(--cyan); box-shadow: 0 0 7px var(--cyan); animation: wirePulse .4s ease-out; }
-#t-t:checked ~ .t-wrap .t-t-lbl     { color: var(--green); border-color: var(--green); box-shadow: 0 0 7px #2ed57344; }
-#t-clk:checked ~ .t-wrap .t-clk-wire { background: var(--cyan); box-shadow: 0 0 7px var(--cyan); animation: wirePulse .4s ease-out; }
-#t-clk:checked ~ .t-wrap .t-clk-lbl  { color: var(--yellow); border-color: var(--yellow); }
-#t-clk:checked ~ .t-wrap .t-clk-v    { background: var(--green); box-shadow: 0 0 7px var(--green); }
-#t-clk:checked ~ .t-wrap .t-box      { border-color: var(--cyan); box-shadow: 0 0 22px #7df9ff44; animation: ffGlow .5s ease-out; }
-
-/* T=1 → show toggle animation */
-#t-t:checked ~ .t-wrap .t-q-bit {
-  animation: tToggle .5s steps(1) infinite;
-  border-color: var(--purple); box-shadow: 0 0 10px #a29bfe66;
-}
-@keyframes tToggle {
-  0%,49% { color: var(--green); background: #001a0a; border-color: var(--green); }
-  50%,100%{ color: var(--red);   background: #1a0a0a; border-color: var(--red); }
-}
-#t-t:checked ~ .t-wrap .t-qn-bit {
-  animation: tToggleN .5s steps(1) infinite;
-  border-color: var(--purple); box-shadow: 0 0 10px #a29bfe66;
-}
-@keyframes tToggleN {
-  0%,49% { color: var(--red);   background: #1a0a0a; border-color: var(--red); }
-  50%,100%{ color: var(--green); background: #001a0a; border-color: var(--green); }
-}
-#t-t:checked ~ .t-wrap .t-q-wire  { animation: wireToggle .5s steps(1) infinite; }
-@keyframes wireToggle {
-  0%,49% { background: var(--green); box-shadow: 0 0 7px var(--green); }
-  50%,100%{ background: var(--off);  box-shadow: none; }
-}
-#t-t:checked ~ .t-wrap .t-toggle-lbl { opacity: 1; }
-.t-toggle-lbl {
-  font-size: .55rem; color: var(--purple); letter-spacing: 1px;
-  text-transform: uppercase; opacity: 0; transition: opacity .3s;
-  animation: toggleBlink .5s steps(1) infinite;
-}
-
+/* ════════════ JK FLIP-FLOP ════════════ */
+#jk-j:checked  ~ #card-jk .wire-j   { background: var(--cyan); box-shadow: 0 0 7px var(--cyan); animation: wirePulse .4s ease-out; }
+#jk-j:checked  ~ #card-jk .lbl-j    { color: var(--green); border-color: var(--green); box-shadow: 0 0 7px #2ed57344; }
+#jk-k:checked  ~ #card-jk .wire-k   { background: var(--cyan); box-shadow: 0 0 7px var(--cyan); animation: wirePulse .4s ease-out; }
+#jk-k:checked  ~ #card-jk .lbl-k    { color: var(--green); border-color: var(--green); box-shadow: 0 0 7px #2ed57344; }
+#jk-clk:checked ~ #card-jk .clk-wire-v { background: var(--green); box-shadow: 0 0 7px var(--green); }
+#jk-clk:checked ~ #card-jk .ff-box  { border-color: var(--cyan); box-shadow: 0 0 22px #7df9ff44; animation: ffGlow .5s ease-out; }
+/* J=1 → SET */
+#jk-j:checked  ~ #card-jk .bit-q    { color: var(--green); border-color: var(--green); box-shadow: 0 0 10px #2ed57366; background: #001a0a; }
+#jk-j:checked  ~ #card-jk .bit-qn   { color: var(--red);   border-color: var(--red);   box-shadow: 0 0 10px #ff475766; background: #1a0a0a; }
+#jk-j:checked  ~ #card-jk .wire-q   { background: var(--green); box-shadow: 0 0 7px var(--green); }
+#jk-j:checked  ~ #card-jk .wire-qn  { background: var(--off); }
+#jk-j:checked  ~ #card-jk .lbl-q    { color: var(--green); border-color: var(--green); }
+#jk-j:checked  ~ #card-jk .lbl-qn   { color: var(--red);   border-color: var(--red); }
+/* K=1 → RESET (wins over J in cascade) */
+#jk-k:checked  ~ #card-jk .bit-q    { color: var(--red);   border-color: var(--red);   box-shadow: 0 0 10px #ff475766; background: #1a0a0a; }
+#jk-k:checked  ~ #card-jk .bit-qn   { color: var(--green); border-color: var(--green); box-shadow: 0 0 10px #2ed57366; background: #001a0a; }
+#jk-k:checked  ~ #card-jk .wire-q   { background: var(--off); }
+#jk-k:checked  ~ #card-jk .wire-qn  { background: var(--green); box-shadow: 0 0 7px var(--green); }
+#jk-k:checked  ~ #card-jk .lbl-q    { color: var(--red);   border-color: var(--red); }
+#jk-k:checked  ~ #card-jk .lbl-qn   { color: var(--green); border-color: var(--green); }
+/* J=1 AND K=1 → TOGGLE (show indicator) */
+#jk-j:checked  ~ #card-jk .tog-ind  { opacity: 1; }
+#jk-k:checked  ~ #card-jk .tog-ind  { opacity: 1; }
 /* Truth table */
-#t-t:checked ~ .t-wrap .t-tt .t-row-tog td { color: var(--cyan); background: #0d2040; }
+#jk-j:checked  ~ #card-jk .tt-set td { color: var(--cyan); background: #0d2040; }
+#jk-k:checked  ~ #card-jk .tt-rst td { color: var(--cyan); background: #0d2040; }
 
-/* ═══════════════════════════════════════════════════════
-   ██  PIPELINE  CONTROL UNIT  ██
-   Pure CSS: checkbox per stage, animated arrows
-═══════════════════════════════════════════════════════ */
-.cu-card {
-  grid-column: 1 / -1;
-  background: var(--panel); border: 1px solid var(--border);
-  border-radius: 12px; padding: 24px;
-}
-.cu-title {
-  font-size: .68rem; letter-spacing: 3px; color: var(--orange);
-  text-transform: uppercase; margin-bottom: 20px;
-  border-bottom: 1px solid var(--border); padding-bottom: 8px;
-}
+/* ════════════ T FLIP-FLOP ════════════ */
+#t-t:checked   ~ #card-t .wire-t    { background: var(--cyan); box-shadow: 0 0 7px var(--cyan); animation: wirePulse .4s ease-out; }
+#t-t:checked   ~ #card-t .lbl-t     { color: var(--green); border-color: var(--green); box-shadow: 0 0 7px #2ed57344; }
+#t-clk:checked ~ #card-t .wire-clk  { background: var(--cyan); box-shadow: 0 0 7px var(--cyan); animation: wirePulse .4s ease-out; }
+#t-clk:checked ~ #card-t .lbl-clk   { color: var(--yellow); border-color: var(--yellow); }
+#t-clk:checked ~ #card-t .clk-wire-v{ background: var(--green); box-shadow: 0 0 7px var(--green); }
+#t-clk:checked ~ #card-t .ff-box    { border-color: var(--cyan); box-shadow: 0 0 22px #7df9ff44; animation: ffGlow .5s ease-out; }
+/* T=1 → continuous toggle animation */
+#t-t:checked ~ #card-t .bit-q  { animation: tToggle .5s steps(1) infinite; border-color: var(--purple); }
+#t-t:checked ~ #card-t .bit-qn { animation: tToggleN .5s steps(1) infinite; border-color: var(--purple); }
+#t-t:checked ~ #card-t .wire-q { animation: wireToggle .5s steps(1) infinite; }
+#t-t:checked ~ #card-t .tog-ind { opacity: 1; }
+@keyframes tToggle  { 0%,49%{color:var(--green);background:#001a0a;border-color:var(--green)} 50%,100%{color:var(--red);background:#1a0a0a;border-color:var(--red)} }
+@keyframes tToggleN { 0%,49%{color:var(--red);background:#1a0a0a;border-color:var(--red)} 50%,100%{color:var(--green);background:#001a0a;border-color:var(--green)} }
+@keyframes wireToggle { 0%,49%{background:var(--green);box-shadow:0 0 7px var(--green)} 50%,100%{background:var(--off);box-shadow:none} }
+/* Truth table */
+#t-t:checked ~ #card-t .tt-tog td { color: var(--cyan); background: #0d2040; }
 
-/* Auto-running pipeline: 5 stages cycle via CSS animation */
-.pipeline {
-  display: flex; align-items: center; justify-content: center;
-  flex-wrap: wrap; gap: 0; margin-bottom: 20px;
-}
-.stage {
-  display: flex; flex-direction: column; align-items: center; gap: 6px;
-  padding: 14px 16px; background: var(--bg); border: 1.5px solid var(--border);
-  border-radius: 8px; min-width: 90px; position: relative;
-  animation: stageCycle 5s steps(1) infinite;
-}
-/* Each stage activates in sequence */
-.stage:nth-child(1)  { animation-delay: 0s; }
-.stage:nth-child(3)  { animation-delay: 1s; }
-.stage:nth-child(5)  { animation-delay: 2s; }
-.stage:nth-child(7)  { animation-delay: 3s; }
-.stage:nth-child(9)  { animation-delay: 4s; }
-
-@keyframes stageCycle {
-  0%,18%  { border-color: var(--orange); box-shadow: 0 0 18px #ff9f4344; background: #1a0a00; }
-  20%,100%{ border-color: var(--border); box-shadow: none; background: var(--bg); }
-}
-
-.stage-icon { font-size: 1.2rem; line-height: 1; }
+/* ── Pipeline (auto CSS) ── */
+.cu-card { grid-column: 1/-1; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+.cu-title { font-size: .68rem; letter-spacing: 3px; color: var(--orange); text-transform: uppercase; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+.pipeline { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 0; margin-bottom: 20px; }
+.stage { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 16px; background: var(--bg); border: 1.5px solid var(--border); border-radius: 8px; min-width: 90px; animation: stageCycle 5s steps(1) infinite; }
+.stage:nth-child(1) { animation-delay: 0s; }
+.stage:nth-child(3) { animation-delay: 1s; }
+.stage:nth-child(5) { animation-delay: 2s; }
+.stage:nth-child(7) { animation-delay: 3s; }
+.stage:nth-child(9) { animation-delay: 4s; }
+@keyframes stageCycle { 0%,18%{border-color:var(--orange);box-shadow:0 0 18px #ff9f4344;background:#1a0a00} 20%,100%{border-color:var(--border);box-shadow:none;background:var(--bg)} }
+.stage-icon { font-size: 1.2rem; }
 .stage-name { font-size: .6rem; letter-spacing: 2px; color: var(--dim); text-transform: uppercase; }
-.stage-state {
-  font-size: .6rem; color: var(--orange); letter-spacing: 1px; min-height: 14px;
-  animation: stateTextCycle 5s steps(1) infinite;
-}
-.stage:nth-child(1) .stage-state  { animation-delay: 0s; }
-.stage:nth-child(3) .stage-state  { animation-delay: 1s; }
-.stage:nth-child(5) .stage-state  { animation-delay: 2s; }
-.stage:nth-child(7) .stage-state  { animation-delay: 3s; }
-.stage:nth-child(9) .stage-state  { animation-delay: 4s; }
-@keyframes stateTextCycle {
-  0%,18%  { color: var(--orange); }
-  20%,100%{ color: var(--dim); }
-}
-
-/* Arrows between stages */
-.s-arrow {
-  width: 32px; height: 2px; background: var(--off);
-  position: relative; flex-shrink: 0;
-  animation: arrowCycle 5s steps(1) infinite;
-}
-.s-arrow:nth-child(2)  { animation-delay: 0s; }
-.s-arrow:nth-child(4)  { animation-delay: 1s; }
-.s-arrow:nth-child(6)  { animation-delay: 2s; }
-.s-arrow:nth-child(8)  { animation-delay: 3s; }
-@keyframes arrowCycle {
-  0%,18%  { background: var(--orange); box-shadow: 0 0 8px #ff9f4366; }
-  20%,100%{ background: var(--off);    box-shadow: none; }
-}
-.s-arrow::after {
-  content: ''; position: absolute; right: -5px; top: 50%; transform: translateY(-50%);
-  border-left: 6px solid var(--off); border-top: 4px solid transparent; border-bottom: 4px solid transparent;
-  animation: arrowHeadCycle 5s steps(1) infinite;
-}
+.stage-state { font-size: .6rem; color: var(--dim); letter-spacing: 1px; min-height: 14px; animation: stateActive 5s steps(1) infinite; }
+.stage:nth-child(1) .stage-state { animation-delay: 0s; }
+.stage:nth-child(3) .stage-state { animation-delay: 1s; }
+.stage:nth-child(5) .stage-state { animation-delay: 2s; }
+.stage:nth-child(7) .stage-state { animation-delay: 3s; }
+.stage:nth-child(9) .stage-state { animation-delay: 4s; }
+@keyframes stateActive { 0%,18%{color:var(--orange)} 20%,100%{color:var(--dim)} }
+.s-arrow { width: 32px; height: 2px; background: var(--off); position: relative; flex-shrink: 0; animation: arrowCycle 5s steps(1) infinite; }
+.s-arrow:nth-child(2) { animation-delay: 0s; }
+.s-arrow:nth-child(4) { animation-delay: 1s; }
+.s-arrow:nth-child(6) { animation-delay: 2s; }
+.s-arrow:nth-child(8) { animation-delay: 3s; }
+@keyframes arrowCycle { 0%,18%{background:var(--orange);box-shadow:0 0 8px #ff9f4366} 20%,100%{background:var(--off);box-shadow:none} }
+.s-arrow::after { content:''; position:absolute; right:-5px; top:50%; transform:translateY(-50%); border-left:6px solid var(--off); border-top:4px solid transparent; border-bottom:4px solid transparent; animation:arrowHeadCycle 5s steps(1) infinite; }
 .s-arrow:nth-child(2)::after { animation-delay: 0s; }
 .s-arrow:nth-child(4)::after { animation-delay: 1s; }
 .s-arrow:nth-child(6)::after { animation-delay: 2s; }
 .s-arrow:nth-child(8)::after { animation-delay: 3s; }
-@keyframes arrowHeadCycle {
-  0%,18%  { border-left-color: var(--orange); }
-  20%,100%{ border-left-color: var(--off); }
-}
+@keyframes arrowHeadCycle { 0%,18%{border-left-color:var(--orange)} 20%,100%{border-left-color:var(--off)} }
+.packet { position:absolute; top:50%; transform:translateY(-50%); width:6px; height:6px; border-radius:50%; background:var(--orange); box-shadow:0 0 8px var(--orange); animation:packetCycle 5s linear infinite; }
+.s-arrow:nth-child(2) .packet { animation-delay: 0s; }
+.s-arrow:nth-child(4) .packet { animation-delay: 1s; }
+.s-arrow:nth-child(6) .packet { animation-delay: 2s; }
+.s-arrow:nth-child(8) .packet { animation-delay: 3s; }
+@keyframes packetCycle { 0%{left:0;opacity:0} 1%{left:0;opacity:1} 18%{left:calc(100% - 6px);opacity:0} 19%,100%{left:0;opacity:0} }
+.reg-file { display:grid; grid-template-columns:repeat(8,1fr); gap:6px; margin-top:8px; }
+@media(max-width:600px){ .reg-file { grid-template-columns:repeat(4,1fr); } }
+.reg-cell { background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:6px 4px; text-align:center; animation:regFlash 5s ease-in-out infinite; }
+.reg-cell:nth-child(1){animation-delay:0s} .reg-cell:nth-child(2){animation-delay:.6s}
+.reg-cell:nth-child(3){animation-delay:1.2s} .reg-cell:nth-child(4){animation-delay:1.8s}
+.reg-cell:nth-child(5){animation-delay:2.4s} .reg-cell:nth-child(6){animation-delay:3s}
+.reg-cell:nth-child(7){animation-delay:3.6s} .reg-cell:nth-child(8){animation-delay:4.2s}
+@keyframes regFlash { 0%,8%{border-color:var(--orange);box-shadow:0 0 10px #ff9f4344;background:#1a0a00} 10%,100%{border-color:var(--border);box-shadow:none;background:var(--bg)} }
+.reg-name { font-size:.52rem; color:var(--dim); letter-spacing:1px; text-transform:uppercase; }
+.reg-val  { font-size:.75rem; color:#4466aa; letter-spacing:1px; margin-top:3px; animation:regValFlash 5s steps(1) infinite; }
+.reg-cell:nth-child(1) .reg-val{animation-delay:0s} .reg-cell:nth-child(2) .reg-val{animation-delay:.6s}
+.reg-cell:nth-child(3) .reg-val{animation-delay:1.2s} .reg-cell:nth-child(4) .reg-val{animation-delay:1.8s}
+.reg-cell:nth-child(5) .reg-val{animation-delay:2.4s} .reg-cell:nth-child(6) .reg-val{animation-delay:3s}
+.reg-cell:nth-child(7) .reg-val{animation-delay:3.6s} .reg-cell:nth-child(8) .reg-val{animation-delay:4.2s}
+@keyframes regValFlash { 0%,8%{color:var(--orange)} 10%,100%{color:#4466aa} }
 
-/* Travelling data packet */
-.packet {
-  position: absolute; top: 50%; transform: translateY(-50%);
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--orange); box-shadow: 0 0 8px var(--orange);
-  animation: packetCycle 5s linear infinite;
-}
-.s-arrow:nth-child(2) .packet  { animation-delay: 0s; }
-.s-arrow:nth-child(4) .packet  { animation-delay: 1s; }
-.s-arrow:nth-child(6) .packet  { animation-delay: 2s; }
-.s-arrow:nth-child(8) .packet  { animation-delay: 3s; }
-@keyframes packetCycle {
-  0%     { left: 0;           opacity: 0; }
-  1%     { left: 0;           opacity: 1; }
-  18%    { left: calc(100% - 6px); opacity: 0; }
-  19%,100%{ left: 0;          opacity: 0; }
-}
-
-/* Register file — animated write flashes */
-.reg-file {
-  display: grid; grid-template-columns: repeat(8,1fr); gap: 6px; margin-top: 8px;
-}
-@media(max-width:600px){ .reg-file { grid-template-columns: repeat(4,1fr); } }
-.reg-cell {
-  background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
-  padding: 6px 4px; text-align: center;
-  animation: regFlash 5s ease-in-out infinite;
-}
-.reg-cell:nth-child(1) { animation-delay: 0s; }
-.reg-cell:nth-child(2) { animation-delay: .6s; }
-.reg-cell:nth-child(3) { animation-delay: 1.2s; }
-.reg-cell:nth-child(4) { animation-delay: 1.8s; }
-.reg-cell:nth-child(5) { animation-delay: 2.4s; }
-.reg-cell:nth-child(6) { animation-delay: 3.0s; }
-.reg-cell:nth-child(7) { animation-delay: 3.6s; }
-.reg-cell:nth-child(8) { animation-delay: 4.2s; }
-@keyframes regFlash {
-  0%,8%   { border-color: var(--orange); box-shadow: 0 0 10px #ff9f4344; background: #1a0a00; }
-  10%,100%{ border-color: var(--border); box-shadow: none; background: var(--bg); }
-}
-.reg-name { font-size: .52rem; color: var(--dim); letter-spacing: 1px; text-transform: uppercase; }
-.reg-val  {
-  font-size: .75rem; color: #4466aa; letter-spacing: 1px; margin-top: 3px;
-  animation: regValFlash 5s steps(1) infinite;
-}
-.reg-cell:nth-child(1) .reg-val { animation-delay: 0s; }
-.reg-cell:nth-child(2) .reg-val { animation-delay: .6s; }
-.reg-cell:nth-child(3) .reg-val { animation-delay: 1.2s; }
-.reg-cell:nth-child(4) .reg-val { animation-delay: 1.8s; }
-.reg-cell:nth-child(5) .reg-val { animation-delay: 2.4s; }
-.reg-cell:nth-child(6) .reg-val { animation-delay: 3.0s; }
-.reg-cell:nth-child(7) .reg-val { animation-delay: 3.6s; }
-.reg-cell:nth-child(8) .reg-val { animation-delay: 4.2s; }
-@keyframes regValFlash {
-  0%,8%   { color: var(--orange); }
-  10%,100%{ color: #4466aa; }
-}
-
-/* ═══════════════════════════════════════════════════════
-   SCROLLING BINARY BACKGROUND
-═══════════════════════════════════════════════════════ */
-.bg-bits { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; opacity: .03; }
-.bc { position: absolute; top: -100%; font-size: .65rem; color: var(--cyan); line-height: 1.5; white-space: pre; animation: fall linear infinite; }
-.bc:nth-child(1)  { left:3%;   animation-duration:12s; animation-delay:-3s; }
-.bc:nth-child(2)  { left:8%;   animation-duration:17s; animation-delay:-8s; }
-.bc:nth-child(3)  { left:14%;  animation-duration:10s; animation-delay:-1s; }
-.bc:nth-child(4)  { left:20%;  animation-duration:15s; animation-delay:-5s; }
-.bc:nth-child(5)  { left:27%;  animation-duration:13s; animation-delay:-9s; }
-.bc:nth-child(6)  { left:34%;  animation-duration:18s; animation-delay:-2s; }
-.bc:nth-child(7)  { left:41%;  animation-duration:11s; animation-delay:-6s; }
-.bc:nth-child(8)  { left:48%;  animation-duration:16s; animation-delay:-4s; }
-.bc:nth-child(9)  { left:55%;  animation-duration:14s; animation-delay:-7s; }
-.bc:nth-child(10) { left:62%;  animation-duration:19s; animation-delay:-1s; }
-.bc:nth-child(11) { left:69%;  animation-duration:12s; animation-delay:-10s;}
-.bc:nth-child(12) { left:76%;  animation-duration:15s; animation-delay:-3s; }
-.bc:nth-child(13) { left:83%;  animation-duration:11s; animation-delay:-8s; }
-.bc:nth-child(14) { left:90%;  animation-duration:17s; animation-delay:-5s; }
-.bc:nth-child(15) { left:96%;  animation-duration:13s; animation-delay:-2s; }
+/* ── BG bits ── */
+.bg-bits { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; opacity:.03; }
+.bc { position:absolute; top:-100%; font-size:.65rem; color:var(--cyan); line-height:1.5; white-space:pre; animation:fall linear infinite; }
+.bc:nth-child(1){left:3%;animation-duration:12s;animation-delay:-3s}
+.bc:nth-child(2){left:10%;animation-duration:17s;animation-delay:-8s}
+.bc:nth-child(3){left:18%;animation-duration:10s;animation-delay:-1s}
+.bc:nth-child(4){left:26%;animation-duration:15s;animation-delay:-5s}
+.bc:nth-child(5){left:34%;animation-duration:13s;animation-delay:-9s}
+.bc:nth-child(6){left:42%;animation-duration:18s;animation-delay:-2s}
+.bc:nth-child(7){left:50%;animation-duration:11s;animation-delay:-6s}
+.bc:nth-child(8){left:58%;animation-duration:16s;animation-delay:-4s}
+.bc:nth-child(9){left:66%;animation-duration:14s;animation-delay:-7s}
+.bc:nth-child(10){left:74%;animation-duration:19s;animation-delay:-1s}
+.bc:nth-child(11){left:82%;animation-duration:12s;animation-delay:-10s}
+.bc:nth-child(12){left:90%;animation-duration:15s;animation-delay:-3s}
 @keyframes fall { to { top: 110%; } }
-
-h1, p, .pure-badge, .clock-strip, .grid { position: relative; z-index: 1; }
+h1,p,.pure-badge,.clock-strip,.grid { position:relative; z-index:1; }
 </style>
 </head>
 <body>
 
-<!-- Scrolling binary background — pure CSS, no JS -->
+<!-- BG -->
 <div class="bg-bits" aria-hidden="true">
-  <div class="bc">10110010&#10;01001101&#10;11010010&#10;00110101&#10;10011010&#10;01100101&#10;11001010&#10;00101101&#10;10010110&#10;01101001&#10;11010100&#10;00101011&#10;10100110&#10;01011010&#10;11001001&#10;00110100&#10;10011011&#10;01100010&#10;11010001&#10;00101110</div>
-  <div class="bc">01001011&#10;10110100&#10;00101101&#10;11010010&#10;01100101&#10;10011010&#10;00110101&#10;11001010&#10;01010110&#10;10100101&#10;00011010&#10;11100101&#10;01001010&#10;10110101&#10;00101010&#10;11010101&#10;01100010&#10;10011101&#10;00110010&#10;11001101</div>
-  <div class="bc">11001010&#10;00110101&#10;10011010&#10;01100101&#10;11010010&#10;00101101&#10;10110010&#10;01001101&#10;00110100&#10;11001011&#10;01010110&#10;10101001&#10;00110010&#10;11001101&#10;01100010&#10;10011101&#10;00101010&#10;11010101&#10;01001010&#10;10110101</div>
-  <div class="bc">00101101&#10;11010010&#10;01100101&#10;10011010&#10;00110101&#10;11001010&#10;01010110&#10;10100101&#10;11001001&#10;00110100&#10;10011011&#10;01100010&#10;11010001&#10;00101110&#10;10110010&#10;01001101&#10;11010010&#10;00110101&#10;10011010&#10;01100101</div>
-  <div class="bc">10011010&#10;01100101&#10;11010010&#10;00101101&#10;10110010&#10;01001101&#10;00110101&#10;11001010&#10;01010110&#10;10100101&#10;00011010&#10;11100101&#10;01001010&#10;10110101&#10;00101010&#10;11010101&#10;01100010&#10;10011101&#10;00110010&#10;11001101</div>
-  <div class="bc">01100101&#10;10011010&#10;00110101&#10;11001010&#10;01010110&#10;10100101&#10;11001001&#10;00110100&#10;10011011&#10;01100010&#10;11010001&#10;00101110&#10;10110010&#10;01001101&#10;11010010&#10;00110101&#10;10011010&#10;01100101&#10;11010010&#10;00101101</div>
-  <div class="bc">11010010&#10;00101101&#10;10110010&#10;01001101&#10;00110101&#10;11001010&#10;01010110&#10;10100101&#10;00011010&#10;11100101&#10;01001010&#10;10110101&#10;00101010&#10;11010101&#10;01100010&#10;10011101&#10;00110010&#10;11001101&#10;01100010&#10;10011101</div>
-  <div class="bc">00110101&#10;11001010&#10;01010110&#10;10100101&#10;11001001&#10;00110100&#10;10011011&#10;01100010&#10;11010001&#10;00101110&#10;10110010&#10;01001101&#10;11010010&#10;00110101&#10;10011010&#10;01100101&#10;11010010&#10;00101101&#10;10110010&#10;01001101</div>
-  <div class="bc">10100101&#10;00011010&#10;11100101&#10;01001010&#10;10110101&#10;00101010&#10;11010101&#10;01100010&#10;10011101&#10;00110010&#10;11001101&#10;01100010&#10;10011101&#10;00110010&#10;11001101&#10;01100010&#10;10011101&#10;00110010&#10;11001101&#10;01100010</div>
-  <div class="bc">01001101&#10;11010010&#10;00110101&#10;10011010&#10;01100101&#10;11010010&#10;00101101&#10;10110010&#10;01001101&#10;00110101&#10;11001010&#10;01010110&#10;10100101&#10;00011010&#10;11100101&#10;01001010&#10;10110101&#10;00101010&#10;11010101&#10;01100010</div>
-  <div class="bc">11001010&#10;01010110&#10;10100101&#10;11001001&#10;00110100&#10;10011011&#10;01100010&#10;11010001&#10;00101110&#10;10110010&#10;01001101&#10;11010010&#10;00110101&#10;10011010&#10;01100101&#10;11010010&#10;00101101&#10;10110010&#10;01001101&#10;00110101</div>
-  <div class="bc">10110101&#10;00101010&#10;11010101&#10;01100010&#10;10011101&#10;00110010&#10;11001101&#10;01100010&#10;10011101&#10;00110010&#10;11001101&#10;01100010&#10;10011101&#10;00110010&#10;11001101&#10;01100010&#10;10011101&#10;00110010&#10;11001101&#10;01100010</div>
-  <div class="bc">00101110&#10;10110010&#10;01001101&#10;11010010&#10;00110101&#10;10011010&#10;01100101&#10;11010010&#10;00101101&#10;10110010&#10;01001101&#10;00110101&#10;11001010&#10;01010110&#10;10100101&#10;00011010&#10;11100101&#10;01001010&#10;10110101&#10;00101010</div>
-  <div class="bc">01010110&#10;10100101&#10;11001001&#10;00110100&#10;10011011&#10;01100010&#10;11010001&#10;00101110&#10;10110010&#10;01001101&#10;11010010&#10;00110101&#10;10011010&#10;01100101&#10;11010010&#10;00101101&#10;10110010&#10;01001101&#10;00110101&#10;11001010</div>
-  <div class="bc">11100101&#10;01001010&#10;10110101&#10;00101010&#10;11010101&#10;01100010&#10;10011101&#10;00110010&#10;11001101&#10;01100010&#10;10011101&#10;00110010&#10;11001101&#10;01100010&#10;10011101&#10;00110010&#10;11001101&#10;01100010&#10;10011101&#10;00110010</div>
+  <div class="bc">10110010&#10;01001101&#10;11010010&#10;00110101&#10;10011010&#10;01100101&#10;11001010&#10;00101101&#10;10010110&#10;01101001&#10;11010100&#10;00101011&#10;10100110&#10;01011010&#10;11001001&#10;00110100&#10;10011011&#10;01100010</div>
+  <div class="bc">01001011&#10;10110100&#10;00101101&#10;11010010&#10;01100101&#10;10011010&#10;00110101&#10;11001010&#10;01010110&#10;10100101&#10;00011010&#10;11100101&#10;01001010&#10;10110101&#10;00101010&#10;11010101&#10;01100010&#10;10011101</div>
+  <div class="bc">11001010&#10;00110101&#10;10011010&#10;01100101&#10;11010010&#10;00101101&#10;10110010&#10;01001101&#10;00110100&#10;11001011&#10;01010110&#10;10101001&#10;00110010&#10;11001101&#10;01100010&#10;10011101&#10;00101010&#10;11010101</div>
+  <div class="bc">00101101&#10;11010010&#10;01100101&#10;10011010&#10;00110101&#10;11001010&#10;01010110&#10;10100101&#10;11001001&#10;00110100&#10;10011011&#10;01100010&#10;11010001&#10;00101110&#10;10110010&#10;01001101&#10;11010010&#10;00110101</div>
+  <div class="bc">10011010&#10;01100101&#10;11010010&#10;00101101&#10;10110010&#10;01001101&#10;00110101&#10;11001010&#10;01010110&#10;10100101&#10;00011010&#10;11100101&#10;01001010&#10;10110101&#10;00101010&#10;11010101&#10;01100010&#10;10011101</div>
+  <div class="bc">01100101&#10;10011010&#10;00110101&#10;11001010&#10;01010110&#10;10100101&#10;11001001&#10;00110100&#10;10011011&#10;01100010&#10;11010001&#10;00101110&#10;10110010&#10;01001101&#10;11010010&#10;00110101&#10;10011010&#10;01100101</div>
+  <div class="bc">11010010&#10;00101101&#10;10110010&#10;01001101&#10;00110101&#10;11001010&#10;01010110&#10;10100101&#10;00011010&#10;11100101&#10;01001010&#10;10110101&#10;00101010&#10;11010101&#10;01100010&#10;10011101&#10;00110010&#10;11001101</div>
+  <div class="bc">00110101&#10;11001010&#10;01010110&#10;10100101&#10;11001001&#10;00110100&#10;10011011&#10;01100010&#10;11010001&#10;00101110&#10;10110010&#10;01001101&#10;11010010&#10;00110101&#10;10011010&#10;01100101&#10;11010010&#10;00101101</div>
+  <div class="bc">10100101&#10;00011010&#10;11100101&#10;01001010&#10;10110101&#10;00101010&#10;11010101&#10;01100010&#10;10011101&#10;00110010&#10;11001101&#10;01100010&#10;10011101&#10;00110010&#10;11001101&#10;01100010&#10;10011101&#10;00110010</div>
+  <div class="bc">01001101&#10;11010010&#10;00110101&#10;10011010&#10;01100101&#10;11010010&#10;00101101&#10;10110010&#10;01001101&#10;00110101&#10;11001010&#10;01010110&#10;10100101&#10;00011010&#10;11100101&#10;01001010&#10;10110101&#10;00101010</div>
+  <div class="bc">11001010&#10;01010110&#10;10100101&#10;11001001&#10;00110100&#10;10011011&#10;01100010&#10;11010001&#10;00101110&#10;10110010&#10;01001101&#10;11010010&#10;00110101&#10;10011010&#10;01100101&#10;11010010&#10;00101101&#10;10110010</div>
+  <div class="bc">10110101&#10;00101010&#10;11010101&#10;01100010&#10;10011101&#10;00110010&#10;11001101&#10;01100010&#10;10011101&#10;00110010&#10;11001101&#10;01100010&#10;10011101&#10;00110010&#10;11001101&#10;01100010&#10;10011101&#10;00110010</div>
 </div>
 
-<!-- ═══ PAGE HEADER ═══ -->
 <h1 class="page-title">Control Unit</h1>
 <p class="page-sub">Latch &amp; Trigger Simulator</p>
 <div class="pure-badge">Zero JavaScript — Pure CSS Only</div>
 
-<!-- ═══ CLOCK STRIP ═══ -->
 <div class="clock-strip">
   <span class="clk-label">System Clock</span>
   <div class="clk-wave"></div>
   <div class="clk-dot"></div>
 </div>
 
-<!-- ═══ MAIN GRID ═══ -->
+<!-- ═══════════════════════════════════════════════════════
+     IMPORTANT: checkboxes MUST be placed BEFORE their
+     target card as direct siblings in the DOM so that
+     the CSS general sibling combinator (~) can reach them.
+═══════════════════════════════════════════════════════ -->
 <div class="grid">
 
-  <!-- ══════════════════════════════════
-       SR LATCH
-  ══════════════════════════════════ -->
+  <!-- ══ SR LATCH ══ -->
   <input type="checkbox" id="sr-s"/>
   <input type="checkbox" id="sr-r"/>
-
-  <div class="card">
+  <div class="card" id="card-sr">
     <div class="card-title">SR Latch (NOR-based)</div>
-    <div class="sr-wrap">
-      <div class="ff-row">
-        <!-- Inputs -->
-        <div class="pins-in">
-          <div class="pin-row">
-            <div class="pin-lbl sr-s-lbl">S = 0</div>
-            <div class="wire sr-s-wire"></div>
-          </div>
-          <div class="pin-row">
-            <div class="pin-lbl sr-r-lbl">R = 0</div>
-            <div class="wire sr-r-wire"></div>
-          </div>
+    <div class="ff-row">
+      <div class="pins-in">
+        <div class="pin-row">
+          <div class="pin-lbl lbl-s">S = 0</div>
+          <div class="wire wire-s"></div>
         </div>
-        <!-- FF Box -->
-        <div class="ff-box sr-box">
-          <div class="ff-name">SR</div>
-          <div class="ff-type">Latch</div>
-          <div class="state-row">
-            <div class="state-col">
-              <div class="state-bit sr-q-bit">0</div>
-              <div class="state-lbl">Q</div>
-            </div>
-            <div class="state-col">
-              <div class="state-bit sr-qn-bit">1</div>
-              <div class="state-lbl">Q̄</div>
-            </div>
-          </div>
-        </div>
-        <!-- Outputs -->
-        <div class="pins-out">
-          <div class="pin-row">
-            <div class="wire sr-q-wire"></div>
-            <div class="pin-lbl sr-q-out">Q = 0</div>
-          </div>
-          <div class="pin-row">
-            <div class="wire sr-qn-wire"></div>
-            <div class="pin-lbl sr-qn-out">Q̄ = 1</div>
-          </div>
+        <div class="pin-row">
+          <div class="pin-lbl lbl-r">R = 0</div>
+          <div class="wire wire-r"></div>
         </div>
       </div>
-      <!-- Controls -->
-      <div class="ctrl-row">
-        <label class="btn set" for="sr-s">SET (S)</label>
-        <label class="btn rst" for="sr-r">RESET (R)</label>
+      <div class="ff-box">
+        <div class="ff-name">SR</div>
+        <div class="ff-type">Latch</div>
+        <div class="state-row">
+          <div class="state-col"><div class="state-bit bit-q">0</div><div class="state-lbl">Q</div></div>
+          <div class="state-col"><div class="state-bit bit-qn">1</div><div class="state-lbl">Q̄</div></div>
+        </div>
       </div>
-      <!-- Truth Table -->
-      <table class="tt sr-tt">
-        <thead><tr><th>S</th><th>R</th><th>Q</th><th>Q̄</th><th>State</th></tr></thead>
-        <tbody>
-          <tr class="sr-row-hold"><td>0</td><td>0</td><td class="vx">Q</td><td class="vx">Q̄</td><td>Hold</td></tr>
-          <tr class="sr-row-set"><td class="v1">1</td><td>0</td><td class="v1">1</td><td class="v0">0</td><td>Set</td></tr>
-          <tr class="sr-row-rst"><td>0</td><td class="v1">1</td><td class="v0">0</td><td class="v1">1</td><td>Reset</td></tr>
-          <tr class="sr-row-inv"><td class="v1">1</td><td class="v1">1</td><td class="vx">X</td><td class="vx">X</td><td style="color:var(--red)">Invalid</td></tr>
-        </tbody>
-      </table>
+      <div class="pins-out">
+        <div class="pin-row"><div class="wire wire-q"></div><div class="pin-lbl lbl-q">Q = 0</div></div>
+        <div class="pin-row"><div class="wire wire-qn"></div><div class="pin-lbl lbl-qn">Q̄ = 1</div></div>
+      </div>
     </div>
+    <div class="ctrl-row">
+      <label class="btn btn-set" for="sr-s">SET (S)</label>
+      <label class="btn btn-rst" for="sr-r">RESET (R)</label>
+    </div>
+    <table class="tt">
+      <thead><tr><th>S</th><th>R</th><th>Q</th><th>Q̄</th><th>State</th></tr></thead>
+      <tbody>
+        <tr><td>0</td><td>0</td><td class="vx">Q</td><td class="vx">Q̄</td><td>Hold</td></tr>
+        <tr class="tt-set"><td class="v1">1</td><td>0</td><td class="v1">1</td><td class="v0">0</td><td>Set</td></tr>
+        <tr class="tt-rst"><td>0</td><td class="v1">1</td><td class="v0">0</td><td class="v1">1</td><td>Reset</td></tr>
+        <tr><td class="v1">1</td><td class="v1">1</td><td class="vx">X</td><td class="vx">X</td><td style="color:var(--red)">Invalid</td></tr>
+      </tbody>
+    </table>
   </div>
 
-  <!-- ══════════════════════════════════
-       D FLIP-FLOP
-  ══════════════════════════════════ -->
+  <!-- ══ D FLIP-FLOP ══ -->
   <input type="checkbox" id="d-d"/>
   <input type="checkbox" id="d-clk"/>
-
-  <div class="card">
+  <div class="card" id="card-d">
     <div class="card-title">D Flip-Flop (Edge-Triggered)</div>
-    <div class="d-wrap">
-      <div class="ff-row">
-        <div class="pins-in">
-          <div class="pin-row">
-            <div class="pin-lbl d-d-lbl">D = 0</div>
-            <div class="wire d-d-wire"></div>
-          </div>
-          <div class="pin-row">
-            <div class="pin-lbl d-clk-lbl">CLK ↑</div>
-            <div class="wire d-clk-wire"></div>
-          </div>
-        </div>
-        <div class="ff-box d-box">
-          <div class="ff-name">D-FF</div>
-          <div class="ff-type">Rising Edge</div>
-          <div class="state-row">
-            <div class="state-col">
-              <div class="state-bit d-q-bit">0</div>
-              <div class="state-lbl">Q</div>
-            </div>
-            <div class="state-col">
-              <div class="state-bit d-qn-bit">1</div>
-              <div class="state-lbl">Q̄</div>
-            </div>
-          </div>
-          <div class="clk-pin">
-            <div class="clk-wire-v d-clk-v"></div>
-            <div class="clk-pin-lbl">CLK</div>
-          </div>
-        </div>
-        <div class="pins-out">
-          <div class="pin-row">
-            <div class="wire d-q-wire"></div>
-            <div class="pin-lbl d-q-out">Q = 0</div>
-          </div>
-          <div class="pin-row">
-            <div class="wire d-qn-wire"></div>
-            <div class="pin-lbl d-qn-out">Q̄ = 1</div>
-          </div>
-        </div>
+    <div class="ff-row">
+      <div class="pins-in">
+        <div class="pin-row"><div class="pin-lbl lbl-d">D = 0</div><div class="wire wire-d"></div></div>
+        <div class="pin-row"><div class="pin-lbl lbl-clk">CLK ↑</div><div class="wire wire-clk"></div></div>
       </div>
-      <div class="ctrl-row">
-        <label class="btn" for="d-d">Toggle D</label>
-        <label class="btn clkb" for="d-clk">CLK Pulse ↑</label>
+      <div class="ff-box">
+        <div class="ff-name">D-FF</div>
+        <div class="ff-type">Rising Edge</div>
+        <div class="state-row">
+          <div class="state-col"><div class="state-bit bit-q">0</div><div class="state-lbl">Q</div></div>
+          <div class="state-col"><div class="state-bit bit-qn">1</div><div class="state-lbl">Q̄</div></div>
+        </div>
+        <div class="clk-pin"><div class="clk-wire-v"></div><div class="clk-pin-lbl">CLK</div></div>
       </div>
-      <table class="tt d-tt">
-        <thead><tr><th>CLK</th><th>D</th><th>Q(next)</th><th>Action</th></tr></thead>
-        <tbody>
-          <tr><td>0/1</td><td class="vx">X</td><td class="vx">Q</td><td>Hold</td></tr>
-          <tr class="d-row-clk"><td class="v1">↑</td><td class="v0">0</td><td class="v0">0</td><td>Latch 0</td></tr>
-          <tr class="d-row-d1"><td class="v1">↑</td><td class="v1">1</td><td class="v1">1</td><td>Latch 1</td></tr>
-        </tbody>
-      </table>
+      <div class="pins-out">
+        <div class="pin-row"><div class="wire wire-q"></div><div class="pin-lbl lbl-q">Q = 0</div></div>
+        <div class="pin-row"><div class="wire wire-qn"></div><div class="pin-lbl lbl-qn">Q̄ = 1</div></div>
+      </div>
     </div>
+    <div class="ctrl-row">
+      <label class="btn" for="d-d">Toggle D</label>
+      <label class="btn btn-clk" for="d-clk">CLK Pulse ↑</label>
+    </div>
+    <table class="tt">
+      <thead><tr><th>CLK</th><th>D</th><th>Q(next)</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td>0/1</td><td class="vx">X</td><td class="vx">Q</td><td>Hold</td></tr>
+        <tr class="tt-clk0"><td class="v1">↑</td><td class="v0">0</td><td class="v0">0</td><td>Latch 0</td></tr>
+        <tr class="tt-d1"><td class="v1">↑</td><td class="v1">1</td><td class="v1">1</td><td>Latch 1</td></tr>
+      </tbody>
+    </table>
   </div>
 
-  <!-- ══════════════════════════════════
-       JK FLIP-FLOP
-  ══════════════════════════════════ -->
+  <!-- ══ JK FLIP-FLOP ══ -->
   <input type="checkbox" id="jk-j"/>
   <input type="checkbox" id="jk-k"/>
   <input type="checkbox" id="jk-clk"/>
-
-  <div class="card">
+  <div class="card" id="card-jk">
     <div class="card-title">JK Flip-Flop (Toggle)</div>
-    <div class="jk-wrap">
-      <div class="ff-row">
-        <div class="pins-in">
-          <div class="pin-row">
-            <div class="pin-lbl jk-j-lbl">J = 0</div>
-            <div class="wire jk-j-wire"></div>
-          </div>
-          <div class="pin-row">
-            <div class="pin-lbl jk-k-lbl">K = 0</div>
-            <div class="wire jk-k-wire"></div>
-          </div>
-        </div>
-        <div class="ff-box jk-box">
-          <div class="ff-name">JK</div>
-          <div class="ff-type">Flip-Flop</div>
-          <div class="state-row">
-            <div class="state-col">
-              <div class="state-bit jk-q-bit">0</div>
-              <div class="state-lbl">Q</div>
-            </div>
-            <div class="state-col">
-              <div class="state-bit jk-qn-bit">1</div>
-              <div class="state-lbl">Q̄</div>
-            </div>
-          </div>
-          <div class="jk-toggle-indicator">TOGGLE</div>
-          <div class="clk-pin">
-            <div class="clk-wire-v jk-clk-v"></div>
-            <div class="clk-pin-lbl">CLK</div>
-          </div>
-        </div>
-        <div class="pins-out">
-          <div class="pin-row">
-            <div class="wire jk-q-wire"></div>
-            <div class="pin-lbl jk-q-out">Q = 0</div>
-          </div>
-          <div class="pin-row">
-            <div class="wire jk-qn-wire"></div>
-            <div class="pin-lbl jk-qn-out">Q̄ = 1</div>
-          </div>
-        </div>
+    <div class="ff-row">
+      <div class="pins-in">
+        <div class="pin-row"><div class="pin-lbl lbl-j">J = 0</div><div class="wire wire-j"></div></div>
+        <div class="pin-row"><div class="pin-lbl lbl-k">K = 0</div><div class="wire wire-k"></div></div>
       </div>
-      <div class="ctrl-row">
-        <label class="btn set" for="jk-j">J (Set)</label>
-        <label class="btn rst" for="jk-k">K (Reset)</label>
-        <label class="btn clkb" for="jk-clk">CLK ↑</label>
+      <div class="ff-box">
+        <div class="ff-name">JK</div>
+        <div class="ff-type">Flip-Flop</div>
+        <div class="state-row">
+          <div class="state-col"><div class="state-bit bit-q">0</div><div class="state-lbl">Q</div></div>
+          <div class="state-col"><div class="state-bit bit-qn">1</div><div class="state-lbl">Q̄</div></div>
+        </div>
+        <div class="tog-ind">TOGGLE</div>
+        <div class="clk-pin"><div class="clk-wire-v"></div><div class="clk-pin-lbl">CLK</div></div>
       </div>
-      <table class="tt jk-tt">
-        <thead><tr><th>J</th><th>K</th><th>Q(next)</th><th>Action</th></tr></thead>
-        <tbody>
-          <tr><td>0</td><td>0</td><td class="vx">Q</td><td>Hold</td></tr>
-          <tr class="jk-row-set"><td class="v1">1</td><td>0</td><td class="v1">1</td><td>Set</td></tr>
-          <tr class="jk-row-rst"><td>0</td><td class="v1">1</td><td class="v0">0</td><td>Reset</td></tr>
-          <tr><td class="v1">1</td><td class="v1">1</td><td class="vx">Q̄</td><td style="color:var(--purple)">Toggle</td></tr>
-        </tbody>
-      </table>
+      <div class="pins-out">
+        <div class="pin-row"><div class="wire wire-q"></div><div class="pin-lbl lbl-q">Q = 0</div></div>
+        <div class="pin-row"><div class="wire wire-qn"></div><div class="pin-lbl lbl-qn">Q̄ = 1</div></div>
+      </div>
     </div>
+    <div class="ctrl-row">
+      <label class="btn btn-set" for="jk-j">J (Set)</label>
+      <label class="btn btn-rst" for="jk-k">K (Reset)</label>
+      <label class="btn btn-clk" for="jk-clk">CLK ↑</label>
+    </div>
+    <table class="tt">
+      <thead><tr><th>J</th><th>K</th><th>Q(next)</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td>0</td><td>0</td><td class="vx">Q</td><td>Hold</td></tr>
+        <tr class="tt-set"><td class="v1">1</td><td>0</td><td class="v1">1</td><td>Set</td></tr>
+        <tr class="tt-rst"><td>0</td><td class="v1">1</td><td class="v0">0</td><td>Reset</td></tr>
+        <tr><td class="v1">1</td><td class="v1">1</td><td class="vx">Q̄</td><td style="color:var(--purple)">Toggle</td></tr>
+      </tbody>
+    </table>
   </div>
 
-  <!-- ══════════════════════════════════
-       T FLIP-FLOP
-  ══════════════════════════════════ -->
+  <!-- ══ T FLIP-FLOP ══ -->
   <input type="checkbox" id="t-t"/>
   <input type="checkbox" id="t-clk"/>
-
-  <div class="card">
+  <div class="card" id="card-t">
     <div class="card-title">T Flip-Flop (Toggle)</div>
-    <div class="t-wrap">
-      <div class="ff-row">
-        <div class="pins-in">
-          <div class="pin-row">
-            <div class="pin-lbl t-t-lbl">T = 0</div>
-            <div class="wire t-t-wire"></div>
-          </div>
-          <div class="pin-row">
-            <div class="pin-lbl t-clk-lbl">CLK ↑</div>
-            <div class="wire t-clk-wire"></div>
-          </div>
-        </div>
-        <div class="ff-box t-box">
-          <div class="ff-name">T-FF</div>
-          <div class="ff-type">Toggle</div>
-          <div class="state-row">
-            <div class="state-col">
-              <div class="state-bit t-q-bit">0</div>
-              <div class="state-lbl">Q</div>
-            </div>
-            <div class="state-col">
-              <div class="state-bit t-qn-bit">1</div>
-              <div class="state-lbl">Q̄</div>
-            </div>
-          </div>
-          <div class="t-toggle-lbl">TOGGLING</div>
-          <div class="clk-pin">
-            <div class="clk-wire-v t-clk-v"></div>
-            <div class="clk-pin-lbl">CLK</div>
-          </div>
-        </div>
-        <div class="pins-out">
-          <div class="pin-row">
-            <div class="wire t-q-wire"></div>
-            <div class="pin-lbl t-q-out">Q</div>
-          </div>
-          <div class="pin-row">
-            <div class="wire t-qn-wire"></div>
-            <div class="pin-lbl t-qn-out">Q̄</div>
-          </div>
-        </div>
+    <div class="ff-row">
+      <div class="pins-in">
+        <div class="pin-row"><div class="pin-lbl lbl-t">T = 0</div><div class="wire wire-t"></div></div>
+        <div class="pin-row"><div class="pin-lbl lbl-clk">CLK ↑</div><div class="wire wire-clk"></div></div>
       </div>
-      <div class="ctrl-row">
-        <label class="btn" for="t-t">Toggle T</label>
-        <label class="btn clkb" for="t-clk">CLK Pulse ↑</label>
+      <div class="ff-box">
+        <div class="ff-name">T-FF</div>
+        <div class="ff-type">Toggle</div>
+        <div class="state-row">
+          <div class="state-col"><div class="state-bit bit-q">0</div><div class="state-lbl">Q</div></div>
+          <div class="state-col"><div class="state-bit bit-qn">1</div><div class="state-lbl">Q̄</div></div>
+        </div>
+        <div class="tog-ind">TOGGLING</div>
+        <div class="clk-pin"><div class="clk-wire-v"></div><div class="clk-pin-lbl">CLK</div></div>
       </div>
-      <table class="tt t-tt">
-        <thead><tr><th>T</th><th>CLK</th><th>Q(next)</th><th>Action</th></tr></thead>
-        <tbody>
-          <tr><td>0</td><td class="vx">↑</td><td class="vx">Q</td><td>Hold</td></tr>
-          <tr class="t-row-tog"><td class="v1">1</td><td class="vx">↑</td><td class="vx">Q̄</td><td style="color:var(--purple)">Toggle</td></tr>
-        </tbody>
-      </table>
+      <div class="pins-out">
+        <div class="pin-row"><div class="wire wire-q"></div><div class="pin-lbl lbl-q">Q</div></div>
+        <div class="pin-row"><div class="wire wire-qn"></div><div class="pin-lbl lbl-qn">Q̄</div></div>
+      </div>
     </div>
+    <div class="ctrl-row">
+      <label class="btn" for="t-t">Toggle T</label>
+      <label class="btn btn-clk" for="t-clk">CLK Pulse ↑</label>
+    </div>
+    <table class="tt">
+      <thead><tr><th>T</th><th>CLK</th><th>Q(next)</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td>0</td><td class="vx">↑</td><td class="vx">Q</td><td>Hold</td></tr>
+        <tr class="tt-tog"><td class="v1">1</td><td class="vx">↑</td><td class="vx">Q̄</td><td style="color:var(--purple)">Toggle</td></tr>
+      </tbody>
+    </table>
   </div>
 
-  <!-- ══════════════════════════════════
-       CONTROL UNIT PIPELINE (auto CSS)
-  ══════════════════════════════════ -->
+  <!-- ══ PIPELINE ══ -->
   <div class="cu-card">
     <div class="cu-title">Control Unit — Instruction Pipeline (Auto-Animated)</div>
     <div class="pipeline">
-      <div class="stage">
-        <div class="stage-icon">📥</div>
-        <div class="stage-name">IF</div>
-        <div class="stage-state">Fetch</div>
-      </div>
+      <div class="stage"><div class="stage-icon">📥</div><div class="stage-name">IF</div><div class="stage-state">Fetch</div></div>
       <div class="s-arrow"><div class="packet"></div></div>
-      <div class="stage">
-        <div class="stage-icon">🔍</div>
-        <div class="stage-name">ID</div>
-        <div class="stage-state">Decode</div>
-      </div>
+      <div class="stage"><div class="stage-icon">🔍</div><div class="stage-name">ID</div><div class="stage-state">Decode</div></div>
       <div class="s-arrow"><div class="packet"></div></div>
-      <div class="stage">
-        <div class="stage-icon">⚙️</div>
-        <div class="stage-name">EX</div>
-        <div class="stage-state">Execute</div>
-      </div>
+      <div class="stage"><div class="stage-icon">⚙️</div><div class="stage-name">EX</div><div class="stage-state">Execute</div></div>
       <div class="s-arrow"><div class="packet"></div></div>
-      <div class="stage">
-        <div class="stage-icon">💾</div>
-        <div class="stage-name">MEM</div>
-        <div class="stage-state">MemAccess</div>
-      </div>
+      <div class="stage"><div class="stage-icon">💾</div><div class="stage-name">MEM</div><div class="stage-state">MemAccess</div></div>
       <div class="s-arrow"><div class="packet"></div></div>
-      <div class="stage">
-        <div class="stage-icon">✅</div>
-        <div class="stage-name">WB</div>
-        <div class="stage-state">WriteBack</div>
-      </div>
+      <div class="stage"><div class="stage-icon">✅</div><div class="stage-name">WB</div><div class="stage-state">WriteBack</div></div>
     </div>
-    <!-- Register File -->
     <div style="font-size:.6rem;letter-spacing:2px;color:var(--dim);text-transform:uppercase;margin-bottom:8px">Register File</div>
     <div class="reg-file">
       <div class="reg-cell"><div class="reg-name">R0</div><div class="reg-val">A3</div></div>
@@ -981,6 +577,5 @@ h1, p, .pure-badge, .clock-strip, .grid { position: relative; z-index: 1; }
   </div>
 
 </div><!-- /grid -->
-
 </body>
 </html>
